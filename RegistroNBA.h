@@ -1,5 +1,18 @@
 struct RegistroNBA
 {
+    // KeyType must be a type that can be compared using >, < and ==. 
+    // getKey must allways return KeyType
+    // If the internal representation of the key does not comply with this 
+    // restriction, it must be casted into a type that does, and in wich stuff "means the same": 
+    // ej. don't cast a char* to an int!
+    
+    typedef std::string KeyType;
+
+    KeyType getKey() 
+    {
+        return home_team;
+    }
+
     char home_team[4]{0}; // home team short
     long matchup_id; // this is pk!
     long home_points;

@@ -5,15 +5,24 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cstdio>
 #include <queue>
+#include <functional>
+#include <cstring>
 #include "RegistroNBA.h"
 
 using namespace std;
 
+/*
+    A Register Type requires
+    having a publicly accesible typedef for KeyType
+    and a publicly accesible function getKey wich returns the key
+*/
 
+template<typename RegisterType>
 struct AVLFileNode
 {
-    RegistroNBA data;
+    RegisterType data;
     int left;
     int right;
     int next;
@@ -24,12 +33,13 @@ struct AVLFileNode
         parent = left = right = next = -1;
     }
 
-    AVLFileNode(RegistroNBA R){
+    AVLFileNode(RegisterType R){
         parent = left = right = next = -1;
         this->data = R;
     }
 };
 
+template<typename RegisterType>
 class avlfileManager
 {
     std::string fname;
@@ -50,15 +60,15 @@ public:
         }
         file.close(); // just in case!
     }
-    vector<RegistroNBA> search(long id)
+    vector<RegisterType> search(long id)
     {
-        return vector<RegistroNBA>();
+        return vector<RegisterType>();
     }
-    vector<RegistroNBA> rangeSearch(long id)
+    vector<RegisterType> rangeSearch(long id)
     {
-        return vector<RegistroNBA>();
+        return vector<RegisterType>();
     }
-    bool add_iter(RegistroNBA reg)
+    bool add_iter(RegisterType reg)
     {
 
         // crear un nuevo nodo
@@ -66,8 +76,8 @@ public:
         MyFileWrite.open(fname, ios::out | ios::in | ios::binary | ios::ate);
 
         int new_reg = MyFileWrite.tellp();
-        AVLFileNode new_node_ram(reg);
-        MyFileWrite.write((char*)&new_node_ram,sizeof(AVLFileNode));
+        AVLFileNode<RegisterType> new_node_ram(reg);
+        MyFileWrite.write((char*)&new_node_ram,sizeof(AVLFileNode<RegisterType>));
 
         MyFileWrite.close();
 
@@ -80,15 +90,15 @@ public:
         // leer el root
         int node_ptr = 0;
         int direction = 1; // 0 is left, 1 is next and 2 is right
-        AVLFileNode node_value;
+        AVLFileNode<RegisterType> node_value;
         MyFileRead.seekg(node_ptr);
-        MyFileRead.read((char*)&node_value,sizeof(AVLFileNode));
+        MyFileRead.read((char*)&node_value,sizeof(AVLFileNode<RegisterType>));
 
         // avanzar por el arbol
         while (node_ptr != -1)
         {
 
-            if (node_value.data.matchup_id < new_node_ram.data.matchup_id)
+            if (node_value.data.getKey() < new_node_ram.data.getKey())
             {
                 // el que acabo de insertar es mayor
                 if (node_value.right == -1)
@@ -101,7 +111,7 @@ public:
                 }
                 node_ptr = node_value.right;
                 MyFileRead.seekg(node_ptr);
-                MyFileRead.read((char*)&node_value,sizeof(AVLFileNode));
+                MyFileRead.read((char*)&node_value,sizeof(AVLFileNode<RegisterType>));
             }
             else if (node_value.data.matchup_id > new_node_ram.data.matchup_id)
             {
@@ -116,7 +126,7 @@ public:
                 }
                 node_ptr = node_value.left;
                 MyFileRead.seekg(node_ptr);
-                MyFileRead.read((char*)&node_value,sizeof(AVLFileNode));
+                MyFileRead.read((char*)&node_value,sizeof(AVLFileNode<RegisterType>));
             }
             else // if(node_value.data.matchup_id == new_node_ram.data.matchup_id)
             {
@@ -124,7 +134,7 @@ public:
                 {
                     node_ptr = node_value.next;
                     MyFileRead.seekg(node_ptr);
-                    MyFileRead.read((char*)&node_value,sizeof(AVLFileNode));
+                    MyFileRead.read((char*)&node_value,sizeof(AVLFileNode<RegisterType>));
                 }
 
                 if (node_ptr != new_reg) // si el head es el que acabo de insertar, entonces se va a colocar como su propio next
@@ -144,16 +154,16 @@ public:
 
         MyFileWrite.open(fname, ios::in | ios::out | ios::binary | ios::ate);
         MyFileWrite.seekp(node_ptr);
-        MyFileWrite.write((char*)&node_value,sizeof(AVLFileNode));
+        MyFileWrite.write((char*)&node_value,sizeof(AVLFileNode<RegisterType>));
 
         MyFileWrite.close();
         return 1;
     }
 
-    bool add(RegistroNBA r)
+    bool add(RegisterType r)
     {
         // create the new node
-        AVLFileNode new_reg(r);
+        AVLFileNode<RegisterType> new_reg(r);
 
         fstream file;
         #ifdef FWARNINGS
@@ -164,7 +174,7 @@ public:
         if (file.is_open())
         {
             int pos_new = file.tellg();
-            file.write((char*)&new_reg,sizeof(AVLFileNode));
+            file.write((char*)&new_reg,sizeof(AVLFileNode<RegisterType>));
 
             // check if inserting the head
             if (pos_new == 0)
@@ -182,22 +192,185 @@ public:
         return true;
     }
 
-    bool remove(long id)
+    bool remove(typename RegisterType::KeyType key)
     {
-        return false;
+        // initialize everything
+        vector<int> visitedStack;
+
+        fstream file;
+
+        #ifdef FWARNINGS
+            file.exceptions(ios::failbit);
+        #endif
+
+        // check for file existance and at least 1 item
+
+        file.open(fname,ios::in | ios::binary | ios::ate);
+        bool file_opens_and_exists1 = file.tellg() == (int)ios::beg;
+        file.close();
+        if (file_opens_and_exists1) return false; // file is empty or unexistant
+
+        // now open it good
+        file.open(fname,ios::in | ios::out | ios::binary | ios::ate);
+
+        
+        // look for the registry:
+
+            // read the root to initialize the thingy
+
+        int node_ptr = 0;
+        AVLFileNode<RegisterType> node_v;
+
+        file.seekg(node_ptr);
+
+        file.read((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
+        visitedStack.push_back(node_ptr);
+
+        while (node_v.data.getKey() != key)
+        {
+            visitedStack.push_back(node_ptr);
+            if (node_v.data.getKey() < key)
+            {
+                // go right
+                node_ptr = node_v.right;
+            }
+            else if (node_v.data.getKey() > key)
+            {
+                // go left
+                node_ptr = node_v.left;
+            }
+
+            if (node_ptr == -1) return false;
+
+            file.seekg(node_ptr);
+
+            file.read((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
+        }
+
+        // cases: no children, 1 child, 2 children
+        if (node_v.right == -1 && node_v.left == -1)
+        {
+            if (node_ptr == 0)// if deleting the head and no children, nuke the file
+            {
+                file.close();
+                std::remove(fname.c_str());
+                file.open(fname,ios::out | ios::binary);
+                file.close();
+                return true;
+            }
+            // else just set the pointer to this to -1 in the previous
+            int parent_ptr = visitedStack[visitedStack.size() - 1]; // im guaranteed at least 1 node
+            AVLFileNode<RegisterType> parent_v;
+            file.seekg(parent_ptr);
+            file.read((char*)&parent_v, sizeof(AVLFileNode<RegisterType>));
+            
+            if (node_ptr == parent_v.left)
+            {
+                //dehang from left
+                parent_v.left = -1;
+            }
+            else
+            {
+                //dehang from right
+                parent_v.right = -1;
+            }
+            
+            file.seekp(parent_ptr);
+            file.write((char*)&parent_v,sizeof(AVLFileNode<RegisterType>));
+        }
+        else if (node_v.left == -1)
+        {
+            // promote right
+            int right_ptr = node_v.right;
+            AVLFileNode<RegisterType> right_v;
+            file.seekg(right_ptr);
+            file.read((char*)&right_v,sizeof(AVLFileNode<RegisterType>));
+            node_v = right_v;
+            file.seekp(node_ptr);
+            file.write((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
+        }
+        else if (node_v.right == -1)
+        {
+            //promote left
+            int left_ptr = node_v.left;
+            AVLFileNode<RegisterType> left_v;
+            file.seekg(left_ptr);
+            file.read((char*)&left_v,sizeof(AVLFileNode<RegisterType>));
+            node_v = left_v;
+            file.seekp(node_ptr);
+            file.write((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
+        }
+        else
+        {
+            // swap with succesor and delete succesor. Balance up
+            int succesor_ptr = node_v.right;
+            AVLFileNode<RegisterType> succesor_v;
+            file.seekg(succesor_ptr);
+            file.read((char*)&succesor_v,sizeof(AVLFileNode<RegisterType>));
+
+            while (succesor_v.left != -1)
+            {
+                visitedStack.push_back(succesor_ptr);
+                succesor_ptr = succesor_v.left;
+                file.seekg(succesor_ptr);
+                file.read((char*)&succesor_v,sizeof(AVLFileNode<RegisterType>));
+            }
+
+            
+            int prev_succesor_ptr = visitedStack[visitedStack.size() - 1]; // this node isnt pushed yet
+            AVLFileNode<RegisterType> prev_succesor_v;
+            file.seekg(prev_succesor_ptr);
+            file.read((char*)&prev_succesor_v,sizeof(AVLFileNode<RegisterType>));
+
+            if (prev_succesor_ptr == node_ptr)
+            {
+                // succesor is immediately at right of node (update both for consistency)
+                prev_succesor_v.right = -1;
+                node_v.right = -1;
+                // swap the data
+                node_v.data = prev_succesor_v.data = succesor_v.data;
+                node_v.next = prev_succesor_v.next = succesor_v.next;
+            }
+            else
+            {
+                // succesor is hanged on left
+                prev_succesor_v.left = -1;
+                // swap the data
+                node_v.data = succesor_v.data;
+                node_v.next = succesor_v.next;
+            }
+
+            file.seekp(prev_succesor_ptr);
+            file.write((char*)&prev_succesor_v,sizeof(AVLFileNode<RegisterType>));
+            file.seekp(node_ptr);
+            file.write((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
+        }
+        
+        while (!visitedStack.empty())
+        {
+            int ptr = visitedStack[visitedStack.size() - 1];
+            
+            update_height(ptr,file);
+            balance(ptr,file);
+
+            visitedStack.pop_back();
+        }
+
+        file.close();
+        return true;
     }
 private:
-    void recursiveAdd(AVLFileNode& to_insert,int adressof_new,int root_node_ptr, fstream& file)
+
+    void recursiveAdd(AVLFileNode<RegisterType>& to_insert,int adressof_new,int root_node_ptr, fstream& file)
     {
         // read up the root node
         file.seekg(root_node_ptr);
-        file.seekp(root_node_ptr);
-        AVLFileNode root_data;
+        AVLFileNode<RegisterType> root_data;
 
-        file.read((char*)&root_data,sizeof(AVLFileNode));
+        file.read((char*)&root_data,sizeof(AVLFileNode<RegisterType>));
 
         // perform ifs
-        if (to_insert.data.matchup_id < root_data.data.matchup_id)
+        if (to_insert.data.getKey() < root_data.data.getKey())
         {
             // attempt to isert on left
             if (root_data.left == -1)
@@ -207,18 +380,16 @@ private:
 
                 root_data.left = adressof_new;
 
-                file.seekg(root_node_ptr);
                 file.seekp(root_node_ptr);
 
-                file.write((char*)&root_data,sizeof(AVLFileNode));
+                file.write((char*)&root_data,sizeof(AVLFileNode<RegisterType>));
 
                 // update the reg itself to know its parent
 
                 to_insert.parent = root_node_ptr;
-                file.seekg(adressof_new);
                 file.seekp(adressof_new);
 
-                file.write((char*)&to_insert,sizeof(AVLFileNode));
+                file.write((char*)&to_insert,sizeof(AVLFileNode<RegisterType>));
 
             }
             else
@@ -227,7 +398,7 @@ private:
             }
             
         }
-        else if (to_insert.data.matchup_id > root_data.data.matchup_id)
+        else if (to_insert.data.getKey() > root_data.data.getKey())
         {
             // attempt to insert on right
             if (root_data.right == -1)
@@ -237,18 +408,16 @@ private:
 
                 root_data.right = adressof_new;
 
-                file.seekg(root_node_ptr);
                 file.seekp(root_node_ptr);
 
-                file.write((char*)&root_data,sizeof(AVLFileNode));
+                file.write((char*)&root_data,sizeof(AVLFileNode<RegisterType>));
 
                 // update the reg itself to know its parent
 
                 to_insert.parent = root_node_ptr;
-                file.seekg(adressof_new);
                 file.seekp(adressof_new);
 
-                file.write((char*)&to_insert,sizeof(AVLFileNode));
+                file.write((char*)&to_insert,sizeof(AVLFileNode<RegisterType>));
             }
             else
             {
@@ -265,26 +434,23 @@ private:
                 linked_root_ptr = root_data.next;
 
                 file.seekg(linked_root_ptr);
-                file.seekp(linked_root_ptr);
 
-                file.read((char*)&root_data,sizeof(AVLFileNode));
+                file.read((char*)&root_data,sizeof(AVLFileNode<RegisterType>));
             }
             
             // now set up the pointers
-            file.seekg(linked_root_ptr);
             file.seekp(linked_root_ptr);
 
             root_data.next = adressof_new;
 
-            file.write((char*)&root_data,sizeof(AVLFileNode));
+            file.write((char*)&root_data,sizeof(AVLFileNode<RegisterType>));
 
             // update the reg itself to know its parent
 
             to_insert.parent = linked_root_ptr;
-            file.seekg(adressof_new);
             file.seekp(adressof_new);
 
-            file.write((char*)&to_insert,sizeof(AVLFileNode));
+            file.write((char*)&to_insert,sizeof(AVLFileNode<RegisterType>));
         }
 
         update_height(root_node_ptr,file);
@@ -295,12 +461,11 @@ private:
     void update_height(int node_ptr,fstream& file)
     {
         // read the node
-        AVLFileNode avlfilenode;
+        AVLFileNode<RegisterType> avlfilenode;
 
         file.seekg(node_ptr);
-        file.seekp(node_ptr);
 
-        file.read((char*)&avlfilenode, sizeof(AVLFileNode));
+        file.read((char*)&avlfilenode, sizeof(AVLFileNode<RegisterType>));
 
         // updates the height of this node
         
@@ -310,11 +475,10 @@ private:
             lheight = -1;
         else
         {
-            AVLFileNode temp_l;
+            AVLFileNode<RegisterType> temp_l;
             file.seekg(avlfilenode.left);
-            file.seekp(avlfilenode.left);
 
-            file.read((char*)&temp_l,sizeof(AVLFileNode));
+            file.read((char*)&temp_l,sizeof(AVLFileNode<RegisterType>));
 
             lheight = temp_l.height;
         }
@@ -324,11 +488,10 @@ private:
             rheight = -1;
         else
         {
-            AVLFileNode temp_r;
+            AVLFileNode<RegisterType> temp_r;
             file.seekg(avlfilenode.right);
-            file.seekp(avlfilenode.right);
 
-            file.read((char*)&temp_r,sizeof(AVLFileNode));
+            file.read((char*)&temp_r,sizeof(AVLFileNode<RegisterType>));
 
             rheight = temp_r.height;
         }
@@ -337,10 +500,9 @@ private:
 
         avlfilenode.height = max(lheight,rheight) + 1;
 
-        file.seekg(node_ptr);
         file.seekp(node_ptr);
 
-        file.write((char*)&avlfilenode,sizeof(AVLFileNode));
+        file.write((char*)&avlfilenode,sizeof(AVLFileNode<RegisterType>));
     }
 
     int balance_factor(int node_ptr,fstream& file)
@@ -348,11 +510,10 @@ private:
         if (node_ptr == -1)
             return 0;
         file.seekg(node_ptr);
-        file.seekp(node_ptr);
 
-        AVLFileNode root_node_data, left_node, right_node;
+        AVLFileNode<RegisterType> root_node_data, left_node, right_node;
 
-        file.read((char*)&root_node_data,sizeof(AVLFileNode));
+        file.read((char*)&root_node_data,sizeof(AVLFileNode<RegisterType>));
 
         int lheight, rheight; 
         // find heights of children
@@ -364,9 +525,8 @@ private:
         else
         {
             file.seekg(root_node_data.left);
-            file.seekp(root_node_data.left);
 
-            file.read((char*)&left_node,sizeof(AVLFileNode));
+            file.read((char*)&left_node,sizeof(AVLFileNode<RegisterType>));
 
             lheight = left_node.height;
         }
@@ -378,9 +538,8 @@ private:
         else
         {
             file.seekg(root_node_data.right);
-            file.seekp(root_node_data.right);
 
-            file.read((char*)&right_node,sizeof(AVLFileNode));
+            file.read((char*)&right_node,sizeof(AVLFileNode<RegisterType>));
 
             rheight = right_node.height;
         }
@@ -402,11 +561,10 @@ private:
         {
             //unbalanced to the left
             file.seekg(node_ptr);
-            file.seekp(node_ptr);
 
-            AVLFileNode root_node_data;
+            AVLFileNode<RegisterType> root_node_data;
 
-            file.read((char*)&root_node_data,sizeof(AVLFileNode));
+            file.read((char*)&root_node_data,sizeof(AVLFileNode<RegisterType>));
 
             int left_balance_fact = balance_factor(root_node_data.left,file);
 
@@ -422,10 +580,9 @@ private:
         {
             //unbalanced to the right
             file.seekg(node_ptr);
-            file.seekp(node_ptr);
 
-            AVLFileNode root_node_data;
-            file.read((char*)&root_node_data,sizeof(AVLFileNode));
+            AVLFileNode<RegisterType> root_node_data;
+            file.read((char*)&root_node_data,sizeof(AVLFileNode<RegisterType>));
 
             int right_balance_fact = balance_factor(root_node_data.right,file);
 
@@ -474,20 +631,18 @@ private:
         int bottom, vers;
         // read node itself
         file.seekg(top);
-        file.seekp(top);
 
         //fetch my relevant info
 
-        AVLFileNode top_v, vers_v, bottom_v;
+        AVLFileNode<RegisterType> top_v, vers_v, bottom_v;
 
-        file.read((char*)&top_v,sizeof(AVLFileNode));
+        file.read((char*)&top_v,sizeof(AVLFileNode<RegisterType>));
 
         vers = top_v.left;
 
         file.seekg(vers);
-        file.seekp(vers);
 
-        file.read((char*)&vers_v,sizeof(AVLFileNode));
+        file.read((char*)&vers_v,sizeof(AVLFileNode<RegisterType>));
 
         bottom = vers_v.left;
 
@@ -498,15 +653,13 @@ private:
 
         // store with vers on top and top on vers
 
-        file.seekg(top);
         file.seekp(top);
 
-        file.write((char*)&vers_v,sizeof(AVLFileNode));
+        file.write((char*)&vers_v,sizeof(AVLFileNode<RegisterType>));
 
-        file.seekg(vers);
         file.seekp(vers);
 
-        file.write((char*)&top_v,sizeof(AVLFileNode));
+        file.write((char*)&top_v,sizeof(AVLFileNode<RegisterType>));
 
         update_height(vers,file);
         update_height(top,file);
@@ -521,20 +674,18 @@ private:
 
     void rotate_left(int node,fstream& file)
     {
-        AVLFileNode node_v, rchild_v;
+        AVLFileNode<RegisterType> node_v, rchild_v;
         int rchild;
 
         file.seekg(node);
-        file.seekp(node);
 
-        file.read((char*)&node_v,sizeof(AVLFileNode));
+        file.read((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
 
         rchild = node_v.right;
 
         file.seekg(rchild);
-        file.seekp(rchild);
 
-        file.read((char*)&rchild_v,sizeof(AVLFileNode));
+        file.read((char*)&rchild_v,sizeof(AVLFileNode<RegisterType>));
 
         // pointer modifications
         node_v.right = rchild_v.left;
@@ -542,15 +693,13 @@ private:
 
         // store swapped
 
-        file.seekg(node);
         file.seekp(node);
 
-        file.write((char*)&rchild_v,sizeof(AVLFileNode));
+        file.write((char*)&rchild_v,sizeof(AVLFileNode<RegisterType>));
 
-        file.seekg(rchild);
         file.seekp(rchild);
 
-        file.write((char*)&node_v,sizeof(AVLFileNode));
+        file.write((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
 
         update_height(rchild,file);
         update_height(node,file);
@@ -562,18 +711,21 @@ private:
             }
         #endif
     };
-public:
+
 #ifdef DEBUG
+
+public:
     // Debugging Functions
     void showFlat()
     {
         ifstream file;
         file.open(fname, ios::in | ios::binary);
-        while ((int)file.tellg() == ios::end)
+        while (!file.eof())
         {
-            AVLFileNode a;
-            file.read((char*)&a,sizeof(AVLFileNode));
-            cout << "pk: " << a.data.matchup_id << "; flags: left = " << ((a.left == -1)?-1:a.left/(long)sizeof(AVLFileNode)) << ", right: " << ((a.right == -1)?-1:a.right/(long)sizeof(AVLFileNode)) << ", next: " << ((a.next== -1)?-1:a.next/(long)sizeof(AVLFileNode))  << " H: " << a.height << endl;
+            int pos =  file.tellg();
+            AVLFileNode<RegisterType> a;
+            file.read((char*)&a,sizeof(AVLFileNode<RegisterType>));
+            cout << pos << ":: "<< "pk: " << a.data.getKey() << "; flags: left = " << a.left << ", right: " << a.right  << ", next: " << a.next  << " H: " << a.height << endl;
         }
         std::cout << endl;
 
@@ -621,13 +773,13 @@ private:
             return;
         
         file.seekg(nodeptr);
-        AVLFileNode node_read; // this is the node in the tree (first of the linked list)
-        file.read((char*)&node_read,sizeof(AVLFileNode));
+        AVLFileNode<RegisterType> node_read; // this is the node in the tree (first of the linked list)
+        file.read((char*)&node_read,sizeof(AVLFileNode<RegisterType>));
 
         // print the whole linked list
 
 
-        AVLFileNode linked_node; // this is the node in the tree (first of the linked list)
+        AVLFileNode<RegisterType> linked_node; // this is the node in the tree (first of the linked list)
         int node_linked_ptr = nodeptr;
 
         for (int i = 0; i<depth*TAB_LEN;i++)
@@ -636,7 +788,7 @@ private:
         while (node_linked_ptr!= -1)
         {
             file.seekg(node_linked_ptr);
-            file.read((char*)&linked_node,sizeof(AVLFileNode));
+            file.read((char*)&linked_node,sizeof(AVLFileNode<RegisterType>));
             // show it
             cout << "["<<linked_node.data.matchup_id << ": " << linked_node.data.home_team << " vs " << linked_node.data.away_team << " H: " << linked_node.height <<  "] -->  ";
             // advance it
@@ -655,18 +807,22 @@ private:
 int main(void)
 {
 
-    avlfileManager fmanager("avlfile.avl");
-    /*
-    for (int i = 0; i<10000; i++)
+    avlfileManager<RegistroNBA> fmanager("avlfile.avl");
+
+    for (int i = 0; i<10; i++)
     {
-        int key = rand()%10000;
-
-        fmanager.add(RegistroNBA{"AAA",key,0,"AAB",0});
-
+        RegistroNBA RegTemp{"",0,0,"AAB",0};
+        
+        strcpy(RegTemp.home_team,to_string(i).c_str());
+        fmanager.add(RegTemp);
     }
-    cout << endl;
-    */
     fmanager.showFileAVLtree();
+    for (int i = 0; i<10; i++)
+    {
+        cout << "removing " << i << "\n";
+        fmanager.remove(to_string(i));
+        fmanager.showFileAVLtree();
+    }
 
-
+    RegistroNBA::KeyType a;
 }
