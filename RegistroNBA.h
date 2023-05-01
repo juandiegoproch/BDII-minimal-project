@@ -6,11 +6,11 @@ struct RegistroNBA
     // restriction, it must be casted into a type that does, and in wich stuff "means the same": 
     // ej. don't cast a char* to an int!
     
-    typedef std::string KeyType;
+    typedef long KeyType;
 
     KeyType getKey() 
     {
-        return home_team;
+        return matchup_id;
     }
 
     char home_team[4]{0}; // home team short
