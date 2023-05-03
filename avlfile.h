@@ -47,13 +47,18 @@ public:
         vector<RegistroNBA> vec; //Vector que retornare
         fstream MyFileRead; //Creo mi ifstream para lectura
         MyFileRead.open(fname, ios::in | ios::binary); //Lectura
-        MyFileRead.seekg(0); //Me ubico en la posicion de ese registro derecho
-        AVLFileNode<RegisterType> noderoot;
-        MyFileRead.read((char *) &noderoot, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
-        recursiveRangeSearch(MyFileRead, vec, noderoot, idstart, idend);
-        MyFileRead.close();
-        if(vec.empty()){
+        MyFileRead.seekg(0, ios::end); // Ir al final del fichero
+        if (MyFileRead.tellg() == 0) { //Vacio
             return vec;
+        }else {
+            MyFileRead.seekg(0); //Me ubico en la posicion de ese registro derecho
+            AVLFileNode<RegisterType> noderoot;
+            MyFileRead.read((char *) &noderoot, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
+            recursiveRangeSearch(MyFileRead, vec, noderoot, idstart, idend);
+            MyFileRead.close();
+            if (vec.empty()) {
+                return vec;
+            }
         }
         return vec;
     }
@@ -73,43 +78,50 @@ public:
         }
         file.close(); // just in case!
     }
-    vector<RegisterType> search(typename RegisterType::KeyType id)
-    {
-            vector<RegistroNBA> vec; //Vector que retornare
+    vector<RegisterType> search(typename RegisterType::KeyType id) {
+        vector<RegistroNBA> vec; //Vector que retornare
 
-            ifstream MyFileRead; //Creo mi ifstream para lectura
-            MyFileRead.open(fname, ios::in | ios::binary); //Lectura
-            int node_ptr = 0; //El node_ptr comienza en 0
-            int iteration = 0;
-            AVLFileNode<RegisterType> nodeforsearch;
-            MyFileRead.read((char*)&nodeforsearch,sizeof(AVLFileNode<RegisterType>)); //Comienzo en la root
+        ifstream MyFileRead; //Creo mi ifstream para lectura
+        MyFileRead.open(fname, ios::in | ios::binary); //Lectura
+        int node_ptr = 0; //El node_ptr comienza en 0
+        int iteration = 0;
+        AVLFileNode<RegisterType> nodeforsearch;
 
-            while (nodeforsearch.data.getKey() != id) { //Si la root.id es distinta a la cual me piden buscar, continuo iterativamente
+        MyFileRead.seekg(0, ios::end); // Ir al final del fichero
+        if (MyFileRead.tellg() == 0) { //Vacio
+            return vec;
+        } else {
+            MyFileRead.seekg(0, ios::beg); // Volver al principio
+            MyFileRead.read((char *) &nodeforsearch, sizeof(AVLFileNode<RegisterType>)); //Comienzo en la root
+
+            while (nodeforsearch.data.getKey() !=
+                   id) { //Si la root.id es distinta a la cual me piden buscar, continuo iterativamente
                 iteration++;
                 if (nodeforsearch.data.getKey() < id) { //Si el id es mayor a la root, voy por derecha ->
                     node_ptr = nodeforsearch.right; //El node_ptr ahora será el registro con numero del right
                     MyFileRead.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
-                    if(iteration>1){
+                    if (iteration > 1) {
                         return vec;
                     }
-                    MyFileRead.read((char *) &nodeforsearch, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
+                    MyFileRead.read((char *) &nodeforsearch,
+                                    sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
                 } else if (nodeforsearch.data.getKey() > id) { //Si el id es menor a la root, voy por izquierda <-
                     node_ptr = nodeforsearch.left; //El node_ptr ahora será el registro con numero del left
                     MyFileRead.seekg(node_ptr); //Me ubico en la posicion de ese registro izquierdo
-                    if(iteration>1){
+                    if (iteration > 1) {
                         return vec;
                     }
-                    MyFileRead.read((char *) &nodeforsearch, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro izquierdo
+                    MyFileRead.read((char *) &nodeforsearch,
+                                    sizeof(AVLFileNode<RegisterType>)); //Leo ese registro izquierdo
                 }
             }
 
-            while (nodeforsearch.next != -1)
-            {
+            while (nodeforsearch.next != -1) {
                 RegistroNBA reg = nodeforsearch.data;
                 vec.push_back(reg);
                 node_ptr = nodeforsearch.next;
                 MyFileRead.seekg(node_ptr);
-                MyFileRead.read((char*)&nodeforsearch,sizeof(AVLFileNode<RegisterType>));
+                MyFileRead.read((char *) &nodeforsearch, sizeof(AVLFileNode<RegisterType>));
             }
 
 
@@ -117,6 +129,7 @@ public:
             vec.push_back(reg);
             MyFileRead.close();
             return vec;
+        }
     }
     bool add_iter(RegisterType reg)
     {
