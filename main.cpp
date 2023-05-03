@@ -1,4 +1,4 @@
-//#define DEBUG
+#define DEBUG
 #define FWARNINGS
 #include "avlfile.h"
 #include "RegistroNBA.h"
