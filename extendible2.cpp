@@ -11,14 +11,37 @@ const int fillfactor = 3;
 
 struct RegistroNBA{
     typedef std::string KeyType;
+
     KeyType getKey(){
         return home_team;
     }
     char home_team[4]{0};
-    long matchup_id;
+    long matchup_id = 1223334444;
     long home_points;
     char away_team[4]{0};
     long away_points;
+
+    friend ostream& operator<<(ostream& os, RegistroNBA reg){
+        os << "key: " << reg.getKey() << " | matchup_id: " << reg.matchup_id << endl;
+        return os;
+    }
+};
+
+struct RegistroTornados{
+    typedef std::string KeyType;
+
+    KeyType getKey(){
+        return date;
+    }
+
+    char date[11];
+    char state[2];
+    long magnitude = 8;
+
+    friend ostream& operator<<(ostream& os, RegistroTornados reg){
+        os << "key: " << reg.getKey() << " | magnitude: " << reg.magnitude << endl;
+        return os;
+    }
 };
 
 template <typename TK, typename TV>
@@ -38,14 +61,14 @@ struct Directory{
     long pos_fisica;
 };
 
-template<typename TK, typename TV>
+template<typename RegisterType>
 struct Bucket {
-    Register<TK,TV> keys[fillfactor];
+    RegisterType keys[fillfactor];
     int count = 0;
     int local_depth = 1;
     int next = -1;
 
-    void insert(Register<TK,TV> reg){
+    void insert(RegisterType reg){
         keys[count] = reg;
         count++;
     }
@@ -55,7 +78,7 @@ struct Bucket {
     }
 };
 
-template <typename TK, typename TV>
+template <typename RegisterType>
 class ExtendibleHash{
 private:
     string hash_file_name;
@@ -76,22 +99,22 @@ public:
     void print_all_buckets(){
         for(int i = 0; i < get_num_buckets(); i++){
             cout << "[" << i << "] ";
-            Bucket<TK,TV> bucket = read_bucket((i*sizeof(Bucket<TK,TV>))+sizeof(int));
+            Bucket<RegisterType> bucket = read_bucket((i*sizeof(Bucket<RegisterType>))+sizeof(int));
             for(int j = 0; j < bucket.count; j++){
-                cout << bucket.keys[j].get_key() << ",";
+                cout << bucket.keys[j].getKey() << ",";
             }
             cout << endl;
         }
     }
 
-    bool remove(TK key){
+    bool remove(typename RegisterType::KeyType key){
         string i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
-        Bucket<TK,TV> bucket = bucket_from_bin(i);
+        Bucket<RegisterType> bucket = bucket_from_bin(i);
 
         while(true){
             for(int j = 0; j < bucket.count; j++){
-                if(bucket.keys[j].name == key) {
+                if(bucket.keys[j].getKey() == key) {
                     redo_bucket(bucket, j);
                     write_bucket(index, bucket);
                     return true;
@@ -99,7 +122,7 @@ public:
             }
             if(bucket.next != -1){
                 index = bucket.next;
-                bucket = read_bucket((bucket.next*sizeof(Bucket<TK,TV>))+sizeof(int));
+                bucket = read_bucket((bucket.next*sizeof(Bucket<RegisterType>))+sizeof(int));
             } else {
                 break;
             }
@@ -123,24 +146,25 @@ public:
         // Get directories.
         cout << "[" << global_depth << "]" << endl;
         for(const auto x: dirs){
-            Bucket<TK,TV> bucket = read_bucket(x.pos_fisica);
+            Bucket<RegisterType> bucket = read_bucket(x.pos_fisica);
             cout << "[" << x.key << "." << bucket.local_depth << "] ";
             display_bucket(bucket);
         }
         cout << "Successfully read: " << get_num_buckets() << " buckets." << endl;
     }
 
-    Register<TK,TV> search(TK key){
+    
+    RegisterType search(typename RegisterType::KeyType key){
         string i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
-        Bucket<TK,TV> bucket = bucket_from_bin(i);
+        Bucket<RegisterType> bucket = bucket_from_bin(i);
 
         while(true){
             for(int j = 0; j < bucket.count; j++){
-                if(bucket.keys[j].name == key) return bucket.keys[j];
+                if(bucket.keys[j].getKey() == key) return bucket.keys[j];
             }
             if(bucket.next != -1){
-                bucket = read_bucket((bucket.next*sizeof(Bucket<TK,TV>))+sizeof(int));
+                bucket = read_bucket((bucket.next*sizeof(Bucket<RegisterType>))+sizeof(int));
             } else {
                 break;
             }
@@ -148,17 +172,17 @@ public:
         throw exception();
     }
 
-    void insert(Register<TK,TV> reg){
-        if(find(reg.get_key())){
+    void insert(RegisterType reg){
+        if(find(reg.getKey())){
             cout << "Register already exist." << endl;
             return;
         }
 
-        string i = hashFunc(reg.name, global_depth); // returns binary string
+        string i = hashFunc(reg.getKey(), global_depth); // returns binary string
         int index = get_bucket_pos_from_index(i);    // 
-        Bucket<TK,TV> bucket = bucket_from_bin(i);
+        Bucket<RegisterType> bucket = bucket_from_bin(i);
 
-        cout << "trying to insert " << reg.get_key() << " in bucket " << index << endl;
+        cout << "trying to insert " << reg.getKey() << " in bucket " << index << endl;
         display_bucket(bucket);
         cout << "----\n";
 
@@ -181,12 +205,12 @@ public:
                         if(bucket.next != -1)
                         {
                             index = bucket.next;
-                            bucket = read_bucket((index*sizeof(Bucket<TK,TV>))+sizeof(int));
+                            bucket = read_bucket((index*sizeof(Bucket<RegisterType>))+sizeof(int));
                         } else {                        //cout << "Create & insert extension" << endl;
                             bucket.next = get_num_buckets();
                             write_bucket(index, bucket);
 
-                            Bucket<TK,TV> new_bucket;
+                            Bucket<RegisterType> new_bucket;
                             new_bucket.local_depth = bucket.local_depth;
                             new_bucket.insert(reg);
                             write_bucket(get_num_buckets(), new_bucket);
@@ -214,7 +238,7 @@ public:
 
 private:
 
-    Bucket<TK,TV> bucket_from_bin(string bin){
+    Bucket<RegisterType> bucket_from_bin(string bin){
         int index = std::stoi(bin, nullptr, 2);
         ifstream file(hash_file_name, ios::in | ios::binary);
         Directory direc;
@@ -224,29 +248,29 @@ private:
         return read_bucket(direc.pos_fisica);
     }
 
-    void display_bucket(Bucket<TK,TV> bucket){
+    void display_bucket(Bucket<RegisterType> bucket){
         for(int i = 0; i < bucket.count; i++){
-            cout << bucket.keys[i].name << ", ";
+            cout << bucket.keys[i].getKey() << ", ";
         }
         if(bucket.next == -1){
             cout << bucket.next << endl;
         } else {
             cout << "-> ";
-            display_bucket(read_bucket((bucket.next*sizeof(Bucket<TK,TV>))+sizeof(int)));
+            display_bucket(read_bucket((bucket.next*sizeof(Bucket<RegisterType>))+sizeof(int)));
         }
     }
 
-    bool find(TK key){
+    bool find(typename RegisterType::KeyType key){
         string i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
-        Bucket<TK,TV> bucket = bucket_from_bin(i);
+        Bucket<RegisterType> bucket = bucket_from_bin(i);
 
         while(true){
             for(int j = 0; j < bucket.count; j++){
-                if(bucket.keys[j].name == key) return true;
+                if(bucket.keys[j].getKey() == key) return true;
             }
             if(bucket.next != -1){
-                bucket = read_bucket((bucket.next*sizeof(Bucket<TK,TV>))+sizeof(int));
+                bucket = read_bucket((bucket.next*sizeof(Bucket<RegisterType>))+sizeof(int));
             } else {
                 break;
             }
@@ -260,26 +284,26 @@ private:
         {
             if(i % 2 != 0)
             {
-                direcs[i].pos_fisica = ((get_num_buckets()-1)*sizeof(Bucket<TK,TV>))+sizeof(int);
+                direcs[i].pos_fisica = ((get_num_buckets()-1)*sizeof(Bucket<RegisterType>))+sizeof(int);
                 write_direc(direcs[i]);
             }
         }  
         return;
     }
 
-    void split(Bucket<TK,TV> bucket, int index){
-        Bucket<TK,TV> new_b;
-        Bucket<TK,TV> old_b;
+    void split(Bucket<RegisterType> bucket, int index){
+        Bucket<RegisterType> new_b;
+        Bucket<RegisterType> old_b;
         new_b.local_depth = bucket.local_depth+1;
         old_b.local_depth = bucket.local_depth+1;
 
-        string first_index = hashFunc(bucket.keys[0].name, global_depth);;
+        string first_index = hashFunc(bucket.keys[0].getKey(), global_depth);;
 
         for(int i = 0; i < bucket.count; i++){
-            string ind = hashFunc(bucket.keys[i].name, global_depth);
+            string ind = hashFunc(bucket.keys[i].getKey(), global_depth);
 
             cout << "index: " << index << endl;
-            cout << "rehashing " << bucket.keys[i].name << " with index: " << ind << endl;
+            cout << "rehashing " << bucket.keys[i].getKey() << " with index: " << ind << endl;
 
             if(ind[0] == '0') old_b.insert(bucket.keys[i]);
             else new_b.insert(bucket.keys[i]);
@@ -332,7 +356,7 @@ private:
             for(auto &x: dirs){
                 if(i == index){
                     cout << "found!" << endl;
-                    x.pos_fisica = ((get_num_buckets()-1)*sizeof(Bucket<TK,TV>))+sizeof(int);
+                    x.pos_fisica = ((get_num_buckets()-1)*sizeof(Bucket<RegisterType>))+sizeof(int);
                 }
                 x.key = to_binary(i, global_depth);
                 write_file.write((char*)&x, sizeof(Directory));
@@ -352,7 +376,7 @@ private:
         length -= sizeof(int);
         file.seekg(0, ios::beg);
         file.close();
-        return length/(sizeof(Bucket<TK,TV>));
+        return length/(sizeof(Bucket<RegisterType>));
     }
 
     void read_dir(){
@@ -381,9 +405,9 @@ private:
             file.write((char*)&global_depth, sizeof(int));
             int num_buckets = pow(2, global_depth);
             for(int i = 0; i < num_buckets; i++){
-                Bucket<TK,TV> b;
+                Bucket<RegisterType> b;
                 b.local_depth = global_depth;
-                file.write((char*)&b, sizeof(Bucket<TK,TV>));
+                file.write((char*)&b, sizeof(Bucket<RegisterType>));
             }
             
             file.close();
@@ -392,14 +416,14 @@ private:
             for(int i = 0; i < num_buckets; i++){
                 Directory dir;
                 dir.key = to_binary(i, global_depth);
-                dir.pos_fisica = sizeof(int) + (sizeof(Bucket<TK,TV>)*i);
+                dir.pos_fisica = sizeof(int) + (sizeof(Bucket<RegisterType>)*i);
                 dir_file.write((char*)&dir, sizeof(Directory));
             }
             dir_file.close();
         }
     }
 
-    void redo_bucket(Bucket<TK,TV> &bucket, int index){
+    void redo_bucket(Bucket<RegisterType> &bucket, int index){
         bucket.count--;
         for(int i = index; i < bucket.count; i++){
             if(i < bucket.count) bucket.keys[i] = bucket.keys[i+1];
@@ -413,10 +437,10 @@ private:
         file.seekg(index_new * sizeof(Directory), ios::beg);
         file.read((char*)&direc, sizeof(Directory));
         file.close();
-        return ((direc.pos_fisica-sizeof(int))/sizeof(Bucket<TK,TV>));
+        return ((direc.pos_fisica-sizeof(int))/sizeof(Bucket<RegisterType>));
     }
 
-    /*Bucket<TK,TV> get_bucket_from_hash(int index){
+    /*Bucket<RegisterType> get_bucket_from_hash(int index){
         ifstream file(hash_file_name, ios::in | ios::binary);
         Directory dir;
         file.seekg(index * sizeof(Directory));
@@ -433,18 +457,18 @@ private:
         file.close();
     }
 
-    void write_bucket(int pos, Bucket<TK,TV> bucket){      // Opens file
+    void write_bucket(int pos, Bucket<RegisterType> bucket){      // Opens file
         fstream file(buckets_file_name, ios::in | ios::out | ios::binary);
-        file.seekp((pos * sizeof(Bucket<TK,TV>)) + sizeof(int), ios::beg);
-        file.write(reinterpret_cast<const char*>(&bucket), sizeof(Bucket<TK,TV>));
+        file.seekp((pos * sizeof(Bucket<RegisterType>)) + sizeof(int), ios::beg);
+        file.write(reinterpret_cast<const char*>(&bucket), sizeof(Bucket<RegisterType>));
         file.close();                               // Write bucket into the file
     }
     
-    Bucket<TK,TV> read_bucket(int pos){
+    Bucket<RegisterType> read_bucket(int pos){
         ifstream file(buckets_file_name, ios::binary | ios::in); 
         file.seekg(pos, ios::beg);
-        Bucket<TK,TV> bucket;
-        file.read(reinterpret_cast<char*>(&bucket), sizeof(Bucket<TK,TV>));
+        Bucket<RegisterType> bucket;
+        file.read(reinterpret_cast<char*>(&bucket), sizeof(Bucket<RegisterType>));
         file.close();
         return bucket;
     }
@@ -458,7 +482,7 @@ private:
         int sum = 0;
         for(const char c : key) sum += int(c);
         int n = pow(2, digits);
-        return to_binary(sum % pow(2,max_depth), digits);
+        return to_binary(sum % int(pow(2,max_depth)), digits);
     }
 
     string hashFunc(int key, int digits){
@@ -469,7 +493,7 @@ public:
 
     void buckets_disp(){
         for(int i = 0; i < get_num_buckets(); i++){
-            Bucket<TK,TV> bucket = read_bucket((i * sizeof(Bucket<TK,TV>)) + sizeof(int));
+            Bucket<RegisterType> bucket = read_bucket((i * sizeof(Bucket<RegisterType>)) + sizeof(int));
             for(int j = 0; j < bucket.count; j++){
                 cout << bucket.keys[j].get_key() << ", ";
             }
@@ -486,10 +510,9 @@ public:
 };
 
 int main(){
-    ExtendibleHash<int, string> hashTable("hash.dat", "buckets.dat", 3);
+    ExtendibleHash<RegistroTornados> hashTable("hash.dat", "buckets.dat", 3);
 
-    Register<int, string> reg;
-    reg.age = "nigger";
+    RegistroTornados reg;
     while(true){
         int option;
         cout << "[0] : display\n[1] : insert\n[2] : search\n[3] : delete\n[4] : exit | ";
@@ -501,19 +524,19 @@ int main(){
                 hashTable.print_all_buckets();
             break;
             case 1:
-                cout << "\nEnter name: ";
-                cin >> reg.name;
+                cout << "\nEnter home_team: ";
+                cin >> reg.date;
                 hashTable.insert(reg);
             break;
             case 2:
-                cout << "\nEnter name: ";
-                cin >> reg.name;
-                cout << "Found: " << hashTable.search(reg.name) << endl;
+                cout << "\nEnter home_team: ";
+                cin >> reg.date;
+                cout << "Found: " << hashTable.search(reg.date) << endl;
             break;
             case 3:
                 cout << "\nEnter name: ";
-                cin >> reg.name;
-                cout << "Remove: " << hashTable.remove(reg.name) << endl;
+                cin >> reg.date;
+                cout << "Remove: " << hashTable.remove(reg.date) << endl;
             break;
             case 4:
                 return 0;
