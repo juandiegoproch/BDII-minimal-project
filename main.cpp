@@ -8,7 +8,7 @@
 int main(void)
 {
 
-    avlFileManager<RegistroNBA> fmanager("../avlfile.avl");
+    avlFileManager<RegistroNBA> fmanager("avlfile.avl");
     /*
     RegistroNBA RegTemp{"A",0,0,"AAB",0};
     RegistroNBA RegTemp2{"B",1,10,"ACB",10};
