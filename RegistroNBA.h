@@ -22,3 +22,8 @@ struct RegistroNBA
     long away_points;
     // other fields ignored because they cluttered stuff
 };
+
+RegistroNBA RegNBAfromCSVline(std::string tuple)
+{
+    // esta funcion recibe algo como (<values>) y retorna un registro completo
+}
