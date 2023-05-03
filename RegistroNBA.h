@@ -3,7 +3,8 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include <stdexept>
+#include <stdexcept>
+#include <algorithm>
 struct RegistroNBA
 {
     // KeyType must be a type that can be compared using >, < and ==. 
@@ -53,8 +54,9 @@ RegistroNBA RegNBAfromCSVline(std::string tuple)
     }
 
     if (attrs.size() < 4)
-        throw std::invalid_argument();
-    for (int x = 0; x < attrs[0].size(); x++) {
+        throw std::invalid_argument("Too short");
+    
+    for (int x = 0; x < std::min(attrs[0].size(),(size_t)3); x++) {
         reg.home_team[x] = attrs[0][x];
     }
 
@@ -93,5 +95,9 @@ std::vector<RegistroNBA> NBAFromCsvToVec(std::string filename,std::vector<Regist
 
 std::string to_string(RegistroNBA a)
 {
-    return std::to_string(a.matchup_id) + std::string(a.home_team) + std::string(a.away_team) + std::to_string(a.home_points) + std::to_string(a.away_points);
+    return std::to_string(a.matchup_id) + "\t" +
+    std::string(a.home_team) + "\t" +
+    std::string(a.away_team) + "\t" +
+    std::to_string(a.home_points) + "\t" +
+    std::to_string(a.away_points);
 }

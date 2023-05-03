@@ -78,7 +78,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 RegistroNBA regnba;
                 try
                 {
-                    RegistroNBA regnba = RegNBAfromCSVline(args);
+                    regnba = RegNBAfromCSVline(args);
                     
                 }
                 catch (std::invalid_argument)
@@ -88,7 +88,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 // only if try has run
                 avlfmanager.insert(regnba);
 
-                return "Inserted Succesfully";
+                return "Inserted Succesfully \n";
             }
             
         }
@@ -199,6 +199,36 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
             {
                 return string("Syntax Error: Unexpected keyword \"") + currentWord + string("\" \n");
             }
+        }
+        else
+        {
+            return string("Relation \"") + currentWord + string("\" does not exist. \n");
+        }
+    }
+    else if (currentWord == "DELETE")
+    {
+        sentence_stream >> currentWord;
+        if (currentWord != "FROM")
+            string("Syntax Error: Unrecognised keyword \"") + currentWord + string("\" \n");
+        sentence_stream >> currentWord;
+        if (currentWord == "NBA_AVL")
+        {
+            std::string key;
+            sentence_stream >> key;
+            long keyl = atol(key.c_str());
+            bool worked = avlfmanager.remove(keyl);
+            if (worked)
+                return "Deleted \n";
+            else
+            {
+                return "Not found \n";
+            }
+
+        }
+        else if (currentWord == "TORNADO_HASH")
+        {
+            std::string key;
+            sentence_stream >> key;
         }
         else
         {
