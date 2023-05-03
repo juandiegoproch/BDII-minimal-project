@@ -1,3 +1,5 @@
+#pragma once
+
 struct RegistroTornados
 {
     char date[11];

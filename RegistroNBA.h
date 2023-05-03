@@ -1,3 +1,5 @@
+#pragma once
+
 struct RegistroNBA
 {
     // KeyType must be a type that can be compared using >, < and ==. 
