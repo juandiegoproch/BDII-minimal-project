@@ -3,42 +3,147 @@
 #include <string>
 #include <sstream>
 #include <locale>
+#include "avlfile.h"
 
-void parseSql(std::string sentence)
+#ifdef DEBUG
+    #include <iostream>
+#endif
+
+std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmanager)
 {
 
     for (char& i : sentence)
         i = std::toupper(i);
     std::istringstream sentence_stream(sentence);
 
-    // read first word
-    std::string fword;
-    sentence_stream >> fword;
-    if (fword == "")
+    #ifdef DEBUG
+        std::cout << "[DEBUG] <parseSql> Preprocessed string: " << sentence << std::endl;
+    #endif
+
+    string currentWord;
+    sentence_stream >> currentWord;
+    if (currentWord == "INSERT")
     {
-        // Empty command Error
-    }
-    else if (fword == "CREATE")
-    {
-        sentence_stream >> fword;
-        if (fword == "TABLE")
+        sentence_stream >> currentWord;
+        if (currentWord != "INTO")
         {
-            // CREATE TABLE <tablename> <REGTYPE> <FILE>
-            std::string tablename;
-            sentence_stream >> tablename;
+            return string("Syntax Error: Unexpected keyword \"") + currentWord + string("\" \n");
+        }
+            // INSERT INTO <here we decide where exactly>
+        sentence_stream >> currentWord;
 
-            std::string register_type; // the name of an exixting type of register to be used as template
-            sentence_stream >> tablename;
-
-            std::string file_to_load;
-            sentence_stream >> tablename;
-
-            // create the table using this data
+        if (currentWord == "NBA_AVL")
+        {
+            // INSERT INTO NBA_AVL FROM/VALUE
+            sentence_stream >> currentWord;
+            if (currentWord == "FROM")
+            {
+                std::string FileName;
+                sentence_stream >> FileName;
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] INSERT INTO NBA_AVL FROM" << FileName << std::endl;
+                #endif
+            }
+            else if (currentWord == "VALUE")
+            {
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] INSERT INTO NBA_AVL VALUE" << std::endl;
+                #endif
+            }
+            
+        }
+        else if (currentWord == "TORNADO_HASH")
+        {
+            // INSERT INTO TORNADO_HASH FROM/VALUE
+            sentence_stream >> currentWord;
+            if (currentWord == "FROM")
+            {
+                std::string FileName;
+                sentence_stream >> FileName;
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] INSERT INTO TORNADO_HASH FROM" << FileName << std::endl;
+                #endif
+            }
+            else if (currentWord == "VALUE")
+            {
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] INSERT INTO TORNADO_HASH VALUE" << std::endl;
+                #endif
+            }
         }
         else
         {
-            // ERROR: CREATE ONLY SUPPORTS TABLE
+            return string("Relation \"") + currentWord + string("\" does not exist. \n");
         }
-        // check for create table, index type
+
+
+
     }
+    else if (currentWord == "SELECT")
+    {
+        sentence_stream >> currentWord;
+        if (currentWord != "*")
+        {
+            return "Error: this implementation does not support specific attribute selection. Use SELECT * ... \n";
+        }
+
+        sentence_stream >> currentWord;
+        if (currentWord != "FROM")
+        {
+            return string("Syntax Error: Unexpected keyword \"") + currentWord + string("\" \n");
+        }
+
+        // SELECT * FROM NBA_AVL/TORNADO_HASH EQUALS/BETWEEN ...
+
+        sentence_stream >> currentWord;
+        if (currentWord == "NBA_AVL")
+        {
+            sentence_stream >> currentWord;
+            if (currentWord == "BETWEEN")
+            {
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] SELECT * FROM NBA_AVL BETWEEN" << std::endl;
+                #endif
+            }
+            else if (currentWord == "EQUALS")
+            {
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] SELECT * FROM NBA_AVL EQUALS" << std::endl;
+                #endif
+            }
+            else 
+            {
+                return string("Syntax Error: Unexpected keyword \"") + currentWord + string("\" \n");
+            }
+        }
+        else if (currentWord == "TORNADO_HASH")
+        {
+            sentence_stream >> currentWord;
+            if (currentWord == "BETWEEN")
+            {
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] SELECT * FROM TORNADO_HASH BETWEEN" << std::endl;
+                #endif
+            }
+            else if (currentWord == "EQUALS")
+            {
+                #ifdef DEBUG
+                    std::cout << "[DEBUG] SELECT * FROM TORNADO_HASH EQUALS" << std::endl;
+                #endif
+            }
+            else 
+            {
+                return string("Syntax Error: Unexpected keyword \"") + currentWord + string("\" \n");
+            }
+        }
+        else
+        {
+            return string("Relation \"") + currentWord + string("\" does not exist. \n");
+        }
+    }
+    else
+    {
+        return string("Syntax Error: Unrecognised keyword \"") + currentWord + string("\" \n");
+    }
+    return string("");
 };
