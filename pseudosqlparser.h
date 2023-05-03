@@ -3,6 +3,10 @@
 #include <string>
 #include <sstream>
 #include <locale>
+#include <vector>
+#include <stdexcept>
+#include "RegistroNBA.h"
+#include "RegistroTornados.h"
 #include "avlfile.h"
 
 #ifdef DEBUG
@@ -43,12 +47,48 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 #ifdef DEBUG
                     std::cout << "[DEBUG] INSERT INTO NBA_AVL FROM" << FileName << std::endl;
                 #endif
+
+                std::vector<RegistroNBA> registros;
+                NBAFromCsvToVec(FileName,registros);
+                int insertedCount = 0;
+                while (!registros.empty())
+                {
+                    avlfmanager.insert(registros.back());
+                    registros.pop_back();
+                }
+
+                return "Inserted " + std::to_string(insertedCount);
             }
             else if (currentWord == "VALUE")
             {
                 #ifdef DEBUG
                     std::cout << "[DEBUG] INSERT INTO NBA_AVL VALUE" << std::endl;
                 #endif
+
+                // correct syntaxis should look like "(home_team,matchup_id,home_points,away_team,away_points)"
+                // first i must peel back the 
+                std::string args;
+                getline(sentence_stream,args);
+
+                args = args.substr(1,args.size() - 1); //get rid of the \n and " " at end and start
+                // if not enclosed in (), error
+                if (args.size() < 2 || *args.begin() != '(' || *args.end() == ')' )
+                    return "Invalid value \n";
+                args = args.substr(1, args.size() - 2);
+                RegistroNBA regnba;
+                try
+                {
+                    regnba = RegNBAfromCSVline(args);
+                    
+                }
+                catch (std::invalid_argument)
+                {
+                    return "Invalid value: mismatched types. \n Hint: type ordering is ht,id,hp,at,ap \n";
+                }
+                // only if try has run
+                avlfmanager.insert(regnba);
+
+                return "Inserted Succesfully \n";
             }
             
         }
@@ -104,12 +144,36 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 #ifdef DEBUG
                     std::cout << "[DEBUG] SELECT * FROM NBA_AVL BETWEEN" << std::endl;
                 #endif
+
+                std::string start_s, end_s;
+
+                sentence_stream >> start_s;
+                sentence_stream >> end_s;
+
+                auto result = avlfmanager.rangeSearch(atol(start_s.c_str()),atol(end_s.c_str()));
+                
+                // generate the output string
+
+                std::string output = " | matchup_id | home_team | away_team | home_points | away_points | \n";
+                for (const auto& i:result)
+                    output += to_string(i) + "\n";
+                return output;
             }
             else if (currentWord == "EQUALS")
             {
                 #ifdef DEBUG
                     std::cout << "[DEBUG] SELECT * FROM NBA_AVL EQUALS" << std::endl;
                 #endif
+                std::string key;
+                sentence_stream >> key;
+
+                long keyl = atol(key.c_str());
+                auto result = avlfmanager.search(keyl);
+
+                std::string output = " | matchup_id | home_team | away_team | home_points | away_points | \n";
+                for (const auto& i:result)
+                    output += to_string(i) + "\n";
+                return output;
             }
             else 
             {
@@ -135,6 +199,36 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
             {
                 return string("Syntax Error: Unexpected keyword \"") + currentWord + string("\" \n");
             }
+        }
+        else
+        {
+            return string("Relation \"") + currentWord + string("\" does not exist. \n");
+        }
+    }
+    else if (currentWord == "DELETE")
+    {
+        sentence_stream >> currentWord;
+        if (currentWord != "FROM")
+            string("Syntax Error: Unrecognised keyword \"") + currentWord + string("\" \n");
+        sentence_stream >> currentWord;
+        if (currentWord == "NBA_AVL")
+        {
+            std::string key;
+            sentence_stream >> key;
+            long keyl = atol(key.c_str());
+            bool worked = avlfmanager.remove(keyl);
+            if (worked)
+                return "Deleted \n";
+            else
+            {
+                return "Not found \n";
+            }
+
+        }
+        else if (currentWord == "TORNADO_HASH")
+        {
+            std::string key;
+            sentence_stream >> key;
         }
         else
         {

@@ -4,6 +4,13 @@
 #include<fstream>
 struct RegistroTornados
 {
+    typedef std::string KeyType;
+
+    KeyType getKey()
+    {
+        return string(state);
+    }
+
     char date[11]{0};
     char state[3]{0};
     long magnitude;

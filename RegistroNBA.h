@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
-#include<vector>
-#include<fstream>
+#include <vector>
+#include <fstream>
+#include <stdexcept>
+#include <algorithm>
 struct RegistroNBA
 {
     // KeyType must be a type that can be compared using >, < and ==. 
@@ -18,8 +20,10 @@ struct RegistroNBA
         return matchup_id;
     }
 
+    //orden: 1, 
+
     char home_team[4]{0}; // home team short
-    long matchup_id; // this is pk!
+    long matchup_id; // this is pk! 
     long home_points;
     char away_team[4]{0}; // away team short
     long away_points;
@@ -49,7 +53,10 @@ RegistroNBA RegNBAfromCSVline(std::string tuple)
         }
     }
 
-    for (int x = 0; x < attrs[0].size(); x++) {
+    if (attrs.size() < 4)
+        throw std::invalid_argument("Too short");
+    
+    for (int x = 0; x < std::min(attrs[0].size(),(size_t)3); x++) {
         reg.home_team[x] = attrs[0][x];
     }
 
@@ -67,9 +74,8 @@ RegistroNBA RegNBAfromCSVline(std::string tuple)
     return reg;
 }
 
-std::vector<RegistroNBA> NBAFromCsvToVec(std::string filename) {
+std::vector<RegistroNBA> NBAFromCsvToVec(std::string filename,std::vector<RegistroNBA>& vecfinal) {
     RegistroNBA regtovec;
-    std::vector<RegistroNBA> vecfinal;
     std::ifstream file;
     file.open(filename, std::ios::in);
 
@@ -85,4 +91,13 @@ std::vector<RegistroNBA> NBAFromCsvToVec(std::string filename) {
     }
 
     return vecfinal;
+}
+
+std::string to_string(RegistroNBA a)
+{
+    return std::to_string(a.matchup_id) + "\t" +
+    std::string(a.home_team) + "\t" +
+    std::string(a.away_team) + "\t" +
+    std::to_string(a.home_points) + "\t" +
+    std::to_string(a.away_points);
 }

@@ -222,7 +222,10 @@ public:
         MyFileWrite.close();
         return 1;
     }
-
+    bool insert(RegisterType r)
+    {
+        return add(r);
+    }
     bool add(RegisterType r)
     {
         // create the new node
