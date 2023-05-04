@@ -10,7 +10,7 @@
 
 using namespace std;
 
-const int fillfactor = 3;   // const int because its used to initialize in the bucket struct, the array size.
+const int fillfactor = 5;   // const int because its used to initialize in the bucket struct, the array size.
 
 struct Directory{
     char key[10]{0};
@@ -44,9 +44,10 @@ private:
 
 public:
 
-    ExtendibleHash(string hfn, string bfn, int max_depth, int gd=1){
+    ExtendibleHash(string hfn, string bfn, int md, int gd=1){
         hash_file_name = hfn;
-        buckets_file_name = bfn;    
+        buckets_file_name = bfn;  
+        max_depth = md;
         global_depth = gd;
         
         initialize_buckets();   // Creates / Read buckets
@@ -456,10 +457,13 @@ private:
 
     char* hashFunc(std::string key, int digits){            // Hash function for strings
         int sum = 0;
-        for(const char c : key) sum += int(c);
+        for(int i = 0; i < key.length(); i++){
+            sum += int(key[i]);
+        }
         int n = pow(2, digits);
         return to_binary(sum % int(pow(2,max_depth)), digits);
     }
+
 
     char* hashFunc(int key, int digits){               // Hash function for ints
         return to_binary(key % int(pow(2, max_depth)), digits);
