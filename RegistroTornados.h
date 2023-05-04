@@ -2,18 +2,22 @@
 #include<string>
 #include<vector>
 #include<fstream>
-struct RegistroTornados
-{
-    typedef long KeyType;
 
-    KeyType getKey()
-    {
-        return magnitude;
+struct RegistroTornados{
+    typedef std::string KeyType;
+
+    KeyType getKey(){
+        return date;
     }
 
-    char date[11]{0};
-    char state[3]{0};
-    long magnitude;
+    char date[11];
+    char state[2];
+    long magnitude = 8;
+
+    friend std::ostream& operator<<(std::ostream& os, RegistroTornados reg){
+        os << "key: " << reg.getKey() << " | magnitude: " << reg.magnitude << std::endl;
+        return os;
+    }
 };
 
 RegistroTornados TornadosFromCSVline(std::string tuple)
@@ -51,6 +55,11 @@ RegistroTornados TornadosFromCSVline(std::string tuple)
 
 }
 
+std::string to_string(RegistroTornados t)
+{
+    return string(t.date) + "\t" + string(t.state) + "\t" + std::to_string(t.magnitude);
+}
+
 std::vector<RegistroTornados> TornadosFromCSVtovec(std::string filename){
     RegistroTornados regtovec;
     std::vector<RegistroTornados> vecfinal;
@@ -68,11 +77,8 @@ std::vector<RegistroTornados> TornadosFromCSVtovec(std::string filename){
         vecfinal.push_back(regtovec);
     }
 
+    cout << "size of vector: " << vecfinal.size() << endl;
+
     return vecfinal;
 
-}
-
-std::string to_string(RegistroTornados t)
-{
-    return string(t.date) + "\t" + string(t.state) + "\t" + std::to_string(t.magnitude);
 }

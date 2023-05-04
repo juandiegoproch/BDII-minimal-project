@@ -243,7 +243,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 std::string key;
                 sentence_stream >> key;
 
-                auto result = hashTable.search(atol(key.c_str()));
+                auto result = hashTable.search(key.c_str());
 
                 std::string output = " | date | state | magnitude | \n";
                 for (auto i : result)
@@ -285,7 +285,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
         {
             std::string key;
             sentence_stream >> key;
-            bool worked = hashTable.remove(atol(key.c_str()));
+            bool worked = hashTable.remove(key.c_str());
             if (worked)
                 return "Deleted \n";
             else
