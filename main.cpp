@@ -33,6 +33,8 @@ int main(void)
                 SELECT must filter, and the filtering is done using two keywords: EQUALS and BETWEEN,
                     these act only upon the primary key, wich must be set in code.
                 
+                DELETE works on the key and only the key: no complex WHERE statements are supported.
+
                 The system is case insensitive.
     )";
     string command;
