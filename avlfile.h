@@ -830,7 +830,21 @@ private:
 #ifdef DEBUG
 
 public:
+
     // Debugging Functions
+
+    void dumpAVL(std::string dfname)
+    {
+        ifstream file;
+        ofstream fdump;
+        fdump.open(dfname,ios::out);
+        file.open(fname, ios::in | ios::binary);
+        dumpAVL(file,fdump,0);
+        file.close();
+        fdump.close();
+
+    }
+
     void showFlat()
     {
         ifstream file;
@@ -881,6 +895,37 @@ public:
 private:
 
     #define TAB_LEN 4
+
+    void dumpAVL(ifstream& file, ofstream& dumpfile, long nodeptr)
+    {
+
+        if (nodeptr == -1)
+            return;
+        
+        file.seekg(nodeptr);
+        AVLFileNode<RegisterType> node_read; // this is the node in the tree (first of the linked list)
+        file.read((char*)&node_read,sizeof(AVLFileNode<RegisterType>));
+
+        // print the whole linked list
+        dumpAVL(file,dumpfile,node_read.left);
+
+        AVLFileNode<RegisterType> linked_node; // this is the node in the tree (first of the linked list)
+        int node_linked_ptr = nodeptr;
+
+
+        while (node_linked_ptr!= -1)
+        {
+            file.seekg(node_linked_ptr);
+            file.read((char*)&linked_node,sizeof(AVLFileNode<RegisterType>));
+            // show it
+            dumpfile << linked_node.data.getKey() << "\n";
+            // advance it
+            node_linked_ptr = linked_node.next;
+        }
+
+        // read the register and print it
+        dumpAVL(file,dumpfile,node_read.right);
+    }
 
     void showFileAVLtree(ifstream& file, int nodeptr, int depth)
     {

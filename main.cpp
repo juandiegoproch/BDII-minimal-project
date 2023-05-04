@@ -1,5 +1,5 @@
 //#define DEBUG
-#define FWARNINGS
+//#define FWARNINGS
 #include "avlfile.h"
 #include "RegistroNBA.h"
 #include "RegistroTornados.h"
@@ -43,3 +43,11 @@ int main(void)
 
 
 }
+
+/*
+int main(void)
+{
+    avlFileManager<RegistroNBA> fmanager("avlfile.avl");
+    fmanager.dumpAVL("dumpfile.csv");
+}
+*/

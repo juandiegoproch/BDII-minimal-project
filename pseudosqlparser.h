@@ -54,6 +54,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 while (!registros.empty())
                 {
                     avlfmanager.insert(registros.back());
+                    insertedCount++;
                     registros.pop_back();
                 }
 
