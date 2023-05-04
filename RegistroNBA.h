@@ -74,12 +74,12 @@ RegistroNBA RegNBAfromCSVline(std::string tuple)
     return reg;
 }
 
-std::vector<RegistroNBA> NBAFromCsvToVec(std::string filename,std::vector<RegistroNBA>& vecfinal) {
+void NBAFromCsvToVec(std::string filename,std::vector<RegistroNBA>& vecfinal) {
     RegistroNBA regtovec;
     std::ifstream file;
     file.open(filename, std::ios::in);
 
-    if (file.fail()) {
+    if (!file.is_open()) {
         exit(1);
     }
 
@@ -89,8 +89,6 @@ std::vector<RegistroNBA> NBAFromCsvToVec(std::string filename,std::vector<Regist
         regtovec = RegNBAfromCSVline(datatotal);
         vecfinal.push_back(regtovec);
     }
-
-    return vecfinal;
 }
 
 std::string to_string(RegistroNBA a)

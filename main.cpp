@@ -1,14 +1,14 @@
 //#define DEBUG
 //#define FWARNINGS
+
 #include "avlfile.h"
 #include "RegistroNBA.h"
 #include "RegistroTornados.h"
-#include "pseudosqlparser.h"
-#include "hash.h"
 #include <iostream>
 
 using namespace std;
 
+/*
 int main(void)
 {
 
@@ -45,11 +45,26 @@ int main(void)
     }
 
 }
+*/
 
-/*
 int main(void)
 {
-    avlFileManager<RegistroNBA> fmanager("avlfile.avl");
-    fmanager.dumpAVL("dumpfile.csv");
+    avlFileManager<RegistroNBA> fmanager("C:\\Users\\RyanO\\CLionProjects\\BaseDeDatosII\\Proyecto\\BDII-minimal-project\\db_files\\avlfile.avl");
+
+    vector<RegistroNBA> vec;
+    NBAFromCsvToVec("C:\\Users\\RyanO\\CLionProjects\\BaseDeDatosII\\Proyecto\\BDII-minimal-project\\datos\\nbadata.csv", vec);
+
+
+    for(auto i:vec) {
+        fmanager.add(i);
+        //cout<<"Home_team: "<<i.home_team<<" - Matchup_id: "<<i.matchup_id<<" - Home_points: "<<i.home_points<<endl;
+    }
+
+    vector<RegistroNBA> buscados = fmanager.rangeSearch(22201012,22201229);
+
+    for(auto x:buscados){
+        cout<<"Searching..."<<endl;
+        cout<<"Home_team: "<<x.home_team<<" - Matchup_id: "<<x.matchup_id<<" - Home_points: "<<x.home_points<<endl;
+    }
+
 }
-*/
