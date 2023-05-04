@@ -48,9 +48,8 @@ public:
         vector<RegistroNBA> vec; //Vector que retornare
         fstream MyFileRead; //Creo mi ifstream para lectura
         MyFileRead.open(fname, ios::in | ios::binary); //Lectura
-        MyFileRead.seekg(0, ios::end); // Ir al final del fichero
+        MyFileRead.seekg(0); // Ir al final del fichero
         bool pass = false;
-        if (MyFileRead.tellg() == 0) { //Vacio
         if (fileIsEmpty(MyFileRead)) { //Vacio
             return vec;
         }else {
@@ -60,7 +59,7 @@ public:
             recursiveRangeSearch(MyFileRead, vec, noderoot, idstart, idend, pass);
             MyFileRead.close();
         }
-
+        
         return vec;
     }
 
@@ -410,7 +409,7 @@ public:
             file.seekp(node_ptr);
             file.write((char*)&node_v,sizeof(AVLFileNode<RegisterType>));
         }
-        
+    
         while (!visitedStack.empty())
         {
             int ptr = visitedStack[visitedStack.size() - 1];
@@ -431,13 +430,12 @@ private:
         return file.peek() == ifstream::traits_type::eof();
     }
 
-    void recursiveRangeSearch(fstream& file, vector<RegistroNBA> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend, bool&pass) {
     bool fileIsEmpty(fstream& file)
     {
         return file.peek() == fstream::traits_type::eof();
     }
 
-    void recursiveRangeSearch(fstream& file, vector<RegistroNBA> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend) {
+    void recursiveRangeSearch(fstream& file, vector<RegistroNBA> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend, bool pass) {
         int node_ptr = 0; //El node_ptr comienza en 0
         if (node.data.getKey() < idstart) {
             if(pass == false) {

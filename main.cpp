@@ -49,17 +49,17 @@ int main(void)
 
 int main(void)
 {
-    avlFileManager<RegistroNBA> fmanager("C:\\Users\\RyanO\\CLionProjects\\BaseDeDatosII\\Proyecto\\BDII-minimal-project\\db_files\\avlfile.avl");
+    avlFileManager<RegistroNBA> fmanager("db_files/avlfile.avl");
 
     vector<RegistroNBA> vec;
-    NBAFromCsvToVec("C:\\Users\\RyanO\\CLionProjects\\BaseDeDatosII\\Proyecto\\BDII-minimal-project\\datos\\nbadata.csv", vec);
+    NBAFromCsvToVec("datos/nbadata.csv", vec);
 
-
+    /*
     for(auto i:vec) {
-        fmanager.add(i);
+        fmanager.insert(i);
         //cout<<"Home_team: "<<i.home_team<<" - Matchup_id: "<<i.matchup_id<<" - Home_points: "<<i.home_points<<endl;
     }
-
+    */
     vector<RegistroNBA> buscados = fmanager.rangeSearch(22201012,22201229);
 
     for(auto x:buscados){
