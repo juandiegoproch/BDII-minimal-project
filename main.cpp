@@ -13,6 +13,7 @@ int main(void)
 {
 
     avlFileManager<RegistroNBA> fmanager("avlfile.avl");
+    ExtendibleHash<RegistroTornados> hashtable("hash_index.hnd","hash_data.hnd",8);
     
     std::cout << "Welcome to OURSQL, our best effort at providing the simplest thing that could pass as a DBMS! \n";
     std::cout << R"(
@@ -38,9 +39,8 @@ int main(void)
     while (true)
     {
         getline(cin,command);
-        cout << parseSql(command,fmanager);
+        cout << parseSql(command,fmanager,hashtable);
     }
-
 
 }
 

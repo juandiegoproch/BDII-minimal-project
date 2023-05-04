@@ -14,7 +14,7 @@
     #include <iostream>
 #endif
 
-std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmanager)
+std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmanager, ExtendibleHash<RegistroTornados>& hashTable)
 {
     for (char& i : sentence)
         i = std::toupper(i);
@@ -104,6 +104,31 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 #ifdef DEBUG
                     std::cout << "[DEBUG] INSERT INTO TORNADO_HASH FROM" << FileName << std::endl;
                 #endif
+                // correct syntaxis should look like "(home_team,matchup_id,home_points,away_team,away_points)"
+                // first i must peel back the 
+                std::string args;
+                getline(sentence_stream,args);
+
+                args = args.substr(1,args.size() - 1); //get rid of the \n and " " at end and start
+                // if not enclosed in (), error
+                if (args.size() < 2 || *args.begin() != '(' || *args.end() == ')' )
+                    return "Invalid value \n";
+                args = args.substr(1, args.size() - 2);
+                RegistroTornados regtor;
+                try
+                {
+                    regtor = TornadosFromCSVline(args);
+                    
+                }
+                catch (std::invalid_argument)
+                {
+                    return "Invalid value: mismatched types. \n Hint: type ordering is ht,id,hp,at,ap \n";
+                }
+                // only if try has run
+                hashTable.insert(regtor);
+
+                return "Inserted Succesfully \n";
+
             }
             else if (currentWord == "VALUE")
             {
@@ -189,12 +214,24 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 #ifdef DEBUG
                     std::cout << "[DEBUG] SELECT * FROM TORNADO_HASH BETWEEN" << std::endl;
                 #endif
+
+                return string("Range Search not supported in extensible hashin \n");
+
             }
             else if (currentWord == "EQUALS")
             {
                 #ifdef DEBUG
                     std::cout << "[DEBUG] SELECT * FROM TORNADO_HASH EQUALS" << std::endl;
                 #endif
+                std::string key;
+                sentence_stream >> key;
+
+                auto result = hashTable.search(atol(key.c_str()));
+
+                std::string output = " | date | state | magnitude | \n";
+                output += to_string(result) + "\n";
+                return output;
+
             }
             else 
             {
@@ -230,6 +267,14 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
         {
             std::string key;
             sentence_stream >> key;
+            bool worked = hashTable.remove(atol(key.c_str()));
+            if (worked)
+                return "Deleted \n";
+            else
+            {
+                return "Not found \n";
+            }
+
         }
         else
         {

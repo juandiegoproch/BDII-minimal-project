@@ -4,11 +4,11 @@
 #include<fstream>
 struct RegistroTornados
 {
-    typedef std::string KeyType;
+    typedef long KeyType;
 
     KeyType getKey()
     {
-        return string(state);
+        return magnitude;
     }
 
     char date[11]{0};
@@ -70,4 +70,9 @@ std::vector<RegistroTornados> TornadosFromCSVtovec(std::string filename){
 
     return vecfinal;
 
+}
+
+std::string to_string(RegistroTornados t)
+{
+    return string(t.date) + "\t" + string(t.state) + "\t" + std::to_string(t.magnitude);
 }
