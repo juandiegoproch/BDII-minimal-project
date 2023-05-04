@@ -9,6 +9,7 @@
 #include <functional>
 #include <cstring>
 #include "RegistroNBA.h"
+#include <algorithm>
 
 using namespace std;
 
@@ -48,18 +49,20 @@ public:
         fstream MyFileRead; //Creo mi ifstream para lectura
         MyFileRead.open(fname, ios::in | ios::binary); //Lectura
         MyFileRead.seekg(0, ios::end); // Ir al final del fichero
+        bool pass = false;
         if (MyFileRead.tellg() == 0) { //Vacio
             return vec;
         }else {
             MyFileRead.seekg(0); //Me ubico en la posicion de ese registro derecho
             AVLFileNode<RegisterType> noderoot;
             MyFileRead.read((char *) &noderoot, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
-            recursiveRangeSearch(MyFileRead, vec, noderoot, idstart, idend);
+            recursiveRangeSearch(MyFileRead, vec, noderoot, idstart, idend, pass);
             MyFileRead.close();
             if (vec.empty()) {
                 return vec;
             }
         }
+
         return vec;
     }
 
@@ -430,51 +433,59 @@ private:
         return file.peek() == ifstream::traits_type::eof();
     }
 
-    void recursiveRangeSearch(fstream& file, vector<RegistroNBA> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend) {
+    void recursiveRangeSearch(fstream& file, vector<RegistroNBA> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend, bool&pass) {
         int node_ptr = 0; //El node_ptr comienza en 0
-
         if (node.data.getKey() < idstart) {
-            if(node.right != -1) {
-                node_ptr = node.right; //El node_ptr ahora será el registro con numero del right
-                file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
-                file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
-                recursiveRangeSearch(file, vec, node, idstart, idend);
-            }
-        }else if(node.data.getKey() > idend) {
-            if(node.left != -1) {
-                node_ptr = node.left; //El node_ptr ahora será el registro con numero del right
-                file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
-                file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
-                recursiveRangeSearch(file, vec, node, idstart, idend);
-            }else{
-                return;
-            }
-        }else{
-            vec.push_back(node.data);
-            if(node.next != -1) {
-                AVLFileNode nodetemp = node;
-                while (node.next != -1) {
-                    node_ptr = node.next;
-                    file.seekg(node_ptr);
-                    file.read((char *) &node, sizeof(AVLFileNode<RegisterType>));
-                    vec.push_back(node.data);
+            if(pass == false) {
+                if (node.right != -1) {
+                    node_ptr = node.right; //El node_ptr ahora será el registro con numero del right
+                    file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
+                    file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
+                    recursiveRangeSearch(file, vec, node, idstart, idend, pass);
                 }
-                node = nodetemp;
             }
-
-            if(node.left != -1) {
-                node_ptr = node.left; //El node_ptr ahora será el registro con numero del right
-                file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
-                file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
-                recursiveRangeSearch(file, vec, node, idstart, idend);
-            }else if(node.right != -1) {
-                node_ptr = node.right; //El node_ptr ahora será el registro con numero del right
-                file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
-                file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
-                recursiveRangeSearch(file, vec, node, idstart, idend);
+        } else if (node.data.getKey() > idend) {
+            if(pass == false) {
+                if (node.left != -1) {
+                    node_ptr = node.left; //El node_ptr ahora será el registro con numero del right
+                    file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
+                    file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
+                    recursiveRangeSearch(file, vec, node, idstart, idend, pass);
+                } else {
+                    return;
+                }
             }
-
         }
+        pass = true;
+        vec.push_back(node.data);
+        if (node.next != -1) {
+            AVLFileNode nodetemp = node;
+            while (node.next != -1) {
+                node_ptr = node.next;
+                file.seekg(node_ptr);
+                file.read((char *) &node, sizeof(AVLFileNode<RegisterType>));
+                vec.push_back(node.data);
+            }
+            node = nodetemp;
+        }
+
+        if (node.left != -1) {
+            node_ptr = node.left; //El node_ptr ahora será el registro con numero del right
+            file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
+            file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
+            if(node.data.getKey() > idstart){
+                recursiveRangeSearch(file, vec, node, idstart, idend, pass);
+            }
+        }
+        if(node.right != -1) {
+            node_ptr = node.right; //El node_ptr ahora será el registro con numero del right
+            file.seekg(node_ptr); //Me ubico en la posicion de ese registro derecho
+            file.read((char *) &node, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
+            if(node.data.getKey() <= idend){
+                recursiveRangeSearch(file, vec, node, idstart, idend, pass);
+            }
+        }
+
     }
 
 
