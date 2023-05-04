@@ -455,11 +455,7 @@ private:
         return binary;
     }
 
-<<<<<<< HEAD
     char* hashFunc(std::string key, int digits){            // Hash function for strings
-=======
-    char* hashFunc(std::string key, int digits){
->>>>>>> 6593a49 (hash arreglado (creo))
         int sum = 0;
         for(int i = 0; i < key.length(); i++){
             sum += int(key[i]);
