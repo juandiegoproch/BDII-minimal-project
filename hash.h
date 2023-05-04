@@ -444,7 +444,7 @@ private:
         return binary;
     }
 
-    char* hashFunc(typename RegisterType::KeyType key, int digits){            // Hash function for strings
+    char* hashFunc(std::string key, int digits){            // Hash function for strings
         int sum = 0;
         for(const char c : key) sum += int(c);
         int n = pow(2, digits);
