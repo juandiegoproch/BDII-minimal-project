@@ -44,8 +44,8 @@ class avlFileManager
 {
     std::string fname;
 public:
-    vector<RegistroNBA> rangeSearch(typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend) {
-        vector<RegistroNBA> vec; //Vector que retornare
+    vector<RegisterType> rangeSearchOld(typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend) {
+        vector<RegisterType> vec; //Vector que retornare
         fstream MyFileRead; //Creo mi ifstream para lectura
         MyFileRead.open(fname, ios::in | ios::binary); //Lectura
         MyFileRead.seekg(0); // Ir al final del fichero
@@ -61,6 +61,12 @@ public:
         }
         
         return vec;
+    }
+
+    vector<RegisterType> rangeSearch(typename RegisterType::KeyType less, typename RegisterType::KeyType more)
+    {
+        ifstream file;
+        file.open(fname,ios::binary | ios::in);
     }
 
     avlFileManager(std::string filename)
