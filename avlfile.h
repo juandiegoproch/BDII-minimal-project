@@ -47,8 +47,7 @@ public:
         vector<RegistroNBA> vec; //Vector que retornare
         fstream MyFileRead; //Creo mi ifstream para lectura
         MyFileRead.open(fname, ios::in | ios::binary); //Lectura
-        MyFileRead.seekg(0, ios::end); // Ir al final del fichero
-        if (MyFileRead.tellg() == 0) { //Vacio
+        if (fileIsEmpty(MyFileRead)) { //Vacio
             return vec;
         }else {
             MyFileRead.seekg(0); //Me ubico en la posicion de ese registro derecho
@@ -56,9 +55,6 @@ public:
             MyFileRead.read((char *) &noderoot, sizeof(AVLFileNode<RegisterType>)); //Leo ese registro derecho
             recursiveRangeSearch(MyFileRead, vec, noderoot, idstart, idend);
             MyFileRead.close();
-            if (vec.empty()) {
-                return vec;
-            }
         }
         return vec;
     }
@@ -428,6 +424,11 @@ private:
     bool fileIsEmpty(ifstream& file)
     {
         return file.peek() == ifstream::traits_type::eof();
+    }
+
+    bool fileIsEmpty(fstream& file)
+    {
+        return file.peek() == fstream::traits_type::eof();
     }
 
     void recursiveRangeSearch(fstream& file, vector<RegistroNBA> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend) {
