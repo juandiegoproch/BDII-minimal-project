@@ -71,6 +71,8 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 std::string args;
                 getline(sentence_stream,args);
 
+                if (args.size() < 1)
+                    return "Syntax error: Invalid empty value \n";
                 args = args.substr(1,args.size() - 1); //get rid of the \n and " " at end and start
                 // if not enclosed in (), error
                 if (args.size() < 2 || *args.begin() != '(' || *args.end() == ')' )
@@ -97,10 +99,8 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
         {
             // INSERT INTO TORNADO_HASH FROM/VALUE
             sentence_stream >> currentWord;
-            if (currentWord == "FROM")
+            if (currentWord == "VALUE")
             {
-                std::string FileName;
-                sentence_stream >> FileName;
                 #ifdef DEBUG
                     std::cout << "[DEBUG] INSERT INTO TORNADO_HASH FROM" << FileName << std::endl;
                 #endif
@@ -109,6 +109,8 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 std::string args;
                 getline(sentence_stream,args);
 
+                if (args.size() == 0)
+                    return "Syntax Error: Invalid empty value \n";
                 args = args.substr(1,args.size() - 1); //get rid of the \n and " " at end and start
                 // if not enclosed in (), error
                 if (args.size() < 2 || *args.begin() != '(' || *args.end() == ')' )
@@ -130,11 +132,26 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 return "Inserted Succesfully \n";
 
             }
-            else if (currentWord == "VALUE")
+            else if (currentWord == "FROM")
             {
                 #ifdef DEBUG
                     std::cout << "[DEBUG] INSERT INTO TORNADO_HASH VALUE" << std::endl;
                 #endif
+                std::string FileName;
+                sentence_stream >> FileName;
+
+                std::vector<RegistroTornados> registros;
+                registros = TornadosFromCSVtovec(FileName);
+                int insertedCount = 0;
+                while (!registros.empty())
+                {
+                    hashTable.insert(registros.back());
+                    insertedCount++;
+                    registros.pop_back();
+                }
+
+                return "Inserted " + std::to_string(insertedCount);
+
             }
         }
         else
@@ -229,7 +246,8 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 auto result = hashTable.search(atol(key.c_str()));
 
                 std::string output = " | date | state | magnitude | \n";
-                output += to_string(result) + "\n";
+                for (auto i : result)
+                    output += to_string(i) + "\n";
                 return output;
 
             }

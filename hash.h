@@ -13,7 +13,7 @@ using namespace std;
 const int fillfactor = 3;   // const int because its used to initialize in the bucket struct, the array size.
 
 struct Directory{
-    char* key;
+    char key[10]{0};
     long pos_fisica;
 };
 
@@ -75,14 +75,19 @@ public:
         return false;
     }
 
-    RegisterType search(typename RegisterType::KeyType key){    // Search
+    vector<RegisterType> search(typename RegisterType::KeyType key){    // Search
+        vector<RegisterType> result;
         char* i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
         while(true){
             for(int j = 0; j < bucket.count; j++){
-                if(bucket.keys[j].getKey() == key) return bucket.keys[j];
+                if(bucket.keys[j].getKey() == key)
+                {
+                    result.push_back(bucket.keys[j]);
+                    return result;
+                }
             }
             if(bucket.next != -1){
                 bucket = read_bucket((bucket.next*sizeof(Bucket<RegisterType>))+sizeof(int));
@@ -90,7 +95,7 @@ public:
                 break;
             }
         }
-        throw exception();
+        return result;
     }
 
     void insert(RegisterType reg){                      // Insert
@@ -219,7 +224,9 @@ private:
             ofstream dir_file(hash_file_name, ios::out | ios::binary);
             for(int i = 0; i < num_buckets; i++){
                 Directory dir;
-                dir.key = to_binary(i, global_depth);
+                char* temp = to_binary(i, global_depth);
+                strcpy(dir.key,temp);
+                delete temp;
                 dir.pos_fisica = sizeof(int) + (sizeof(Bucket<RegisterType>)*i);
                 dir_file.write((char*)&dir, sizeof(Directory));
             }
@@ -270,7 +277,9 @@ private:
                     cout << "found!" << endl;
                     x.pos_fisica = ((get_num_buckets()-1)*sizeof(Bucket<RegisterType>))+sizeof(int);
                 }
-                x.key = to_binary(i, global_depth);
+                char* temp = to_binary(i, global_depth);
+                strcpy(x.key,temp);
+                delete temp;
                 write_file.write((char*)&x, sizeof(Directory));
                 i++;
             }
@@ -364,7 +373,8 @@ private:
     int get_bucket_pos_from_index(char* index) {
         // Given an index, it returns the bucket with that position.
         int index_new = std::stoi(index, nullptr, 2);
-        ifstream file(hash_file_name, ios::in | ios::binary);
+        ifstream file;
+        file.open(hash_file_name, ios::in | ios::binary);
         Directory direc;
         file.seekg(index_new * sizeof(Directory), ios::beg);
         file.read((char*)&direc, sizeof(Directory));
@@ -444,7 +454,7 @@ private:
         return binary;
     }
 
-    char* hashFunc(typename RegisterType::KeyType key, int digits){            // Hash function for strings
+    char* hashFunc(std::string key, int digits){            // Hash function for strings
         int sum = 0;
         for(const char c : key) sum += int(c);
         int n = pow(2, digits);
