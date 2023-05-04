@@ -4,6 +4,7 @@
 #include "RegistroNBA.h"
 #include "RegistroTornados.h"
 #include "pseudosqlparser.h"
+#include "hash.h"
 #include <iostream>
 
 using namespace std;
