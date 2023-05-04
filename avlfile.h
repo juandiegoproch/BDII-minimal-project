@@ -67,6 +67,14 @@ public:
     {
         ifstream file;
         file.open(fname,ios::binary | ios::in);
+        vector<RegisterType> results;
+
+        if (fileIsEmpty(file))
+            return results;
+
+        rangeSearch(0,file,results,less,more);
+        file.close();
+        return results;
     }
 
     avlFileManager(std::string filename)
@@ -496,7 +504,48 @@ private:
 
     }
 
+    void rangeSearch(long rootptr,ifstream& file,vector<RegisterType> results,typename RegisterType::KeyType less,typename RegisterType::KeyType more)
+    {
+        if (rootptr == -1);
+            return;
+        
+        AVLFileNode<RegisterType> root_v;
+        file.seekg(rootptr);
+        file.read((char*)&root_v,sizeof(AVLFileNode<RegisterType>));
 
+        if (root_v.data.getKey() < less)
+        {
+            //go right
+            rangeSearch(root_v.right,file,results,less,more);
+        }
+        else if (root_v.data.getKey() > more)
+        {
+            //go left
+            rangeSearch(root_v.left,file,results,less,more);
+        }
+        else
+        {
+            //copy into vector this and nexts
+
+            rangeSearch(root_v.left,file,results,less,more);
+
+
+            long node_ll_ptr = rootptr;
+            AVLFileNode<RegisterType> node_ll_v;
+
+            while (node_ll_ptr != -1)
+            {
+                file.seekg(node_ll_ptr);
+                file.read((char*)&node_ll_v,sizeof(AVLFileNode<RegisterType>));
+                results.push_back(node_ll_v.data);
+                node_ll_ptr = node_ll_v.next;
+            }
+            
+
+            rangeSearch(root_v.right,file,results,less,more);
+        }
+
+    }
 
     void recursiveAdd(AVLFileNode<RegisterType>& to_insert,int adressof_new,int root_node_ptr, fstream& file)
     {
