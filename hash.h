@@ -13,7 +13,7 @@ using namespace std;
 const int fillfactor = 3;   // const int because its used to initialize in the bucket struct, the array size.
 
 struct Directory{
-    string key;
+    char* key;
     long pos_fisica;
 };
 
@@ -53,7 +53,7 @@ public:
     }
 
     bool remove(typename RegisterType::KeyType key){    // Remove
-        string i = hashFunc(key, global_depth);
+        char* i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
@@ -76,7 +76,7 @@ public:
     }
 
     RegisterType search(typename RegisterType::KeyType key){    // Search
-        string i = hashFunc(key, global_depth);
+        char* i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
@@ -99,7 +99,7 @@ public:
             return;
         }
 
-        string i = hashFunc(reg.getKey(), global_depth); // returns binary string
+        char* i = hashFunc(reg.getKey(), global_depth); // returns binary string
         int index = get_bucket_pos_from_index(i);    // 
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
@@ -157,6 +157,43 @@ public:
         }
     }
 
+    // -- Debug functions -- //
+
+    void display_indexes(){     // Used for debug, prints all directories, indexes and position
+        read_dir();
+    }
+
+    void display_buckets(){     // Display each index with its bucket respectively
+        vector<Directory> dirs;
+        ifstream file(hash_file_name, ios::in | ios::binary);
+        for(int i = 0; i < pow(2, global_depth); i++){
+            Directory dir;
+            file.read((char*)&dir, sizeof(Directory));
+            dirs.push_back(dir);
+        }
+        file.close();
+        // Get directories.
+        cout << "[" << global_depth << "]" << endl;
+        for(const auto x: dirs){
+            Bucket<RegisterType> bucket = read_bucket(x.pos_fisica);
+            cout << "[" << x.key << "." << bucket.local_depth << "] ";
+            display_bucket(bucket);
+        }
+        cout << "Successfully read: " << get_num_buckets() << " buckets." << endl;
+    }
+ 
+    void print_all_buckets(){   // Used for debug, prints all buckets and their contents (no indexes)
+        for(int i = 0; i < get_num_buckets(); i++){
+            cout << "[" << i << "] ";
+            Bucket<RegisterType> bucket = read_bucket((i*sizeof(Bucket<RegisterType>))+sizeof(int));
+            for(int j = 0; j < bucket.count; j++){
+                cout << bucket.keys[j].getKey() << ",";
+            }
+            cout << endl;
+        }
+    }
+
+
 private:
 
     // -- Important functions -- //
@@ -196,10 +233,10 @@ private:
         new_b.local_depth = bucket.local_depth+1;
         old_b.local_depth = bucket.local_depth+1;
 
-        string first_index = hashFunc(bucket.keys[0].getKey(), global_depth);;
+        char* first_index = hashFunc(bucket.keys[0].getKey(), global_depth);;
 
         for(int i = 0; i < bucket.count; i++){
-            string ind = hashFunc(bucket.keys[i].getKey(), global_depth);
+            char* ind = hashFunc(bucket.keys[i].getKey(), global_depth);
 
             cout << "index: " << index << endl;
             cout << "rehashing " << bucket.keys[i].getKey() << " with index: " << ind << endl;
@@ -324,7 +361,8 @@ private:
         return length/(sizeof(Bucket<RegisterType>));
     }
 
-    int get_bucket_pos_from_index(string index){        // Given an index, it returns the bucket with that position.
+    int get_bucket_pos_from_index(char* index) {
+        // Given an index, it returns the bucket with that position.
         int index_new = std::stoi(index, nullptr, 2);
         ifstream file(hash_file_name, ios::in | ios::binary);
         Directory direc;
@@ -333,6 +371,7 @@ private:
         file.close();
         return ((direc.pos_fisica-sizeof(int))/sizeof(Bucket<RegisterType>));
     }
+
 
     Bucket<RegisterType> bucket_from_bin(string bin){   // Given a binary string ex. 010101 it returns the bucket with that index.
         int index = std::stoi(bin, nullptr, 2);
@@ -376,7 +415,7 @@ private:
     // -- Auxiliar functions -- //
 
     bool find(typename RegisterType::KeyType key){      // The search function but with boolean as the return-type
-        string i = hashFunc(key, global_depth);
+        char* i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
@@ -393,60 +432,30 @@ private:
         return false;
     }
 
-    string to_binary(int num, int digits) {        // Turns a binary chain into an int.
+    char* to_binary(int num, int digits) {        
+        // Turns an integer into a binary string of length 'digits' and returns it as a char array
         std::bitset<32> bits(num); // convert num to binary representation
-        return bits.to_string().substr(32 - digits); // extract the last 'digits' bits and return as a string
+        std::string binary_str = bits.to_string().substr(32 - digits); // extract the last 'digits' bits and convert to a string
+        char* binary = new char[10]; // allocate memory for the char array
+        for (int i = 0; i < digits; i++) {
+            binary[i] = binary_str[i]; // copy each character to the 'binary' array
+        }
+        binary[digits] = '\0'; // add null character to terminate the string
+        return binary;
     }
 
-    string hashFunc(string key, int digits){            // Hash function for strings
+    char* hashFunc(typename RegisterType::KeyType key, int digits){            // Hash function for strings
         int sum = 0;
         for(const char c : key) sum += int(c);
         int n = pow(2, digits);
         return to_binary(sum % int(pow(2,max_depth)), digits);
     }
 
-    string hashFunc(int key, int digits){               // Hash function for ints
+    char* hashFunc(int key, int digits){               // Hash function for ints
         return to_binary(key % int(pow(2, max_depth)), digits);
     }
 
 public:
-
-    // -- Debug functions -- //
-
-    void display_indexes(){     // Used for debug, prints all directories, indexes and position
-        read_dir();
-    }
-
-    void display_buckets(){     // Display each index with its bucket respectively
-        vector<Directory> dirs;
-        ifstream file(hash_file_name, ios::in | ios::binary);
-        for(int i = 0; i < pow(2, global_depth); i++){
-            Directory dir;
-            file.read((char*)&dir, sizeof(Directory));
-            dirs.push_back(dir);
-        }
-        file.close();
-        // Get directories.
-        cout << "[" << global_depth << "]" << endl;
-        for(const auto x: dirs){
-            Bucket<RegisterType> bucket = read_bucket(x.pos_fisica);
-            cout << "[" << x.key << "." << bucket.local_depth << "] ";
-            display_bucket(bucket);
-        }
-        cout << "Successfully read: " << get_num_buckets() << " buckets." << endl;
-    }
- 
-    void print_all_buckets(){   // Used for debug, prints all buckets and their contents (no indexes)
-        for(int i = 0; i < get_num_buckets(); i++){
-            cout << "[" << i << "] ";
-            Bucket<RegisterType> bucket = read_bucket((i*sizeof(Bucket<RegisterType>))+sizeof(int));
-            for(int j = 0; j < bucket.count; j++){
-                cout << bucket.keys[j].getKey() << ",";
-            }
-            cout << endl;
-        }
-    }
-
     ~ExtendibleHash(){
         fstream output_file(buckets_file_name, ios::binary | ios::in | ios::out);
         output_file.seekp(0, ios::beg);
