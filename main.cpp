@@ -2,13 +2,15 @@
 //#define FWARNINGS
 
 #include "avlfile.h"
+#include "hash.h"
+#include "pseudosqlparser.h"
 #include "RegistroNBA.h"
 #include "RegistroTornados.h"
 #include <iostream>
 
 using namespace std;
 
-/*
+
 int main(void)
 {
 
@@ -42,29 +44,6 @@ int main(void)
     {
         getline(cin,command);
         cout << parseSql(command,fmanager,hashtable);
-    }
-
-}
-*/
-
-int main(void)
-{
-    avlFileManager<RegistroNBA> fmanager("db_files/avlfile.avl");
-
-    vector<RegistroNBA> vec;
-    NBAFromCsvToVec("datos/nbadata.csv", vec);
-
-    /*
-    for(auto i:vec) {
-        fmanager.insert(i);
-        //cout<<"Home_team: "<<i.home_team<<" - Matchup_id: "<<i.matchup_id<<" - Home_points: "<<i.home_points<<endl;
-    }
-    */
-    vector<RegistroNBA> buscados = fmanager.rangeSearch(22201012,22201229);
-
-    for(auto x:buscados){
-        cout<<"Searching..."<<endl;
-        cout<<"Home_team: "<<x.home_team<<" - Matchup_id: "<<x.matchup_id<<" - Home_points: "<<x.home_points<<endl;
     }
 
 }

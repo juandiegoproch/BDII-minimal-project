@@ -504,9 +504,9 @@ private:
 
     }
 
-    void rangeSearch(long rootptr,ifstream& file,vector<RegisterType> results,typename RegisterType::KeyType less,typename RegisterType::KeyType more)
+    void rangeSearch(long rootptr,ifstream& file,vector<RegisterType>& results,typename RegisterType::KeyType less,typename RegisterType::KeyType more)
     {
-        if (rootptr == -1);
+        if (rootptr == -1)
             return;
         
         AVLFileNode<RegisterType> root_v;
@@ -544,7 +544,6 @@ private:
 
             rangeSearch(root_v.right,file,results,less,more);
         }
-
     }
 
     void recursiveAdd(AVLFileNode<RegisterType>& to_insert,int adressof_new,int root_node_ptr, fstream& file)

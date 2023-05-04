@@ -102,7 +102,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
             if (currentWord == "VALUE")
             {
                 #ifdef DEBUG
-                    std::cout << "[DEBUG] INSERT INTO TORNADO_HASH FROM" << FileName << std::endl;
+                    std::cout << "[DEBUG] INSERT INTO TORNADO_HASH VALUE" << FileName << std::endl;
                 #endif
                 // correct syntaxis should look like "(home_team,matchup_id,home_points,away_team,away_points)"
                 // first i must peel back the 
@@ -135,13 +135,25 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
             else if (currentWord == "FROM")
             {
                 #ifdef DEBUG
-                    std::cout << "[DEBUG] INSERT INTO TORNADO_HASH VALUE" << std::endl;
+                    std::cout << "[DEBUG] INSERT INTO TORNADO_HASH FROM" << std::endl;
                 #endif
                 std::string FileName;
                 sentence_stream >> FileName;
 
+                for (auto& c :FileName)
+                {
+                    c = std::tolower(c);
+                }
+
                 std::vector<RegistroTornados> registros;
-                registros = TornadosFromCSVtovec(FileName);
+                try{
+                    registros = TornadosFromCSVtovec(FileName);
+                }
+                catch (char const*)
+                {
+                    return "File cannot be opened or is malformed \n";
+                }
+
                 int insertedCount = 0;
                 while (!registros.empty())
                 {

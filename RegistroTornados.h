@@ -58,7 +58,7 @@ std::vector<RegistroTornados> TornadosFromCSVtovec(std::string filename){
     file.open(filename, std::ios::in);
 
     if (file.fail()) {
-        exit(1);
+        throw "";
     }
 
     std::string datatotal = "";

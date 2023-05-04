@@ -80,7 +80,7 @@ void NBAFromCsvToVec(std::string filename,std::vector<RegistroNBA>& vecfinal) {
     file.open(filename, std::ios::in);
 
     if (!file.is_open()) {
-        exit(1);
+        throw "";
     }
 
     std::string datatotal = "";
