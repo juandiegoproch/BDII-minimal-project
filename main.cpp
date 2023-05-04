@@ -47,3 +47,65 @@ int main(void)
     }
 
 }
+
+/*
+std::string chooseRandString(std::vector<std::string> words)
+{
+    int index_raw = rand();
+
+    return words[index_raw%words.size()];
+}
+
+int main(){
+    ExtendibleHash<RegistroTornados> hashTable("hash.dat", "buckets.dat", 8);
+    vector<string> il = {"MO","OH","AR","IL","TX","LA","MS","TN","OK","FL","AL","SC","KS","IA","NE","SD","WY","NC","GA","ND","MN","WI","IN","PA","NM","CT","CO","WV","MD","KY","CA","VA","NJ","MI","MA","NH","OR","NY","MT","AZ","UT","ME","VT","ID","WA","DE","HI","PR","AK","NV","RI","DC","VI"};
+
+    RegistroTornados reg;
+    while(true){
+        int option;
+        cout << "[0] : display\n[1] : insert\n[2] : search\n[3] : delete\n[4] : exit | ";
+        cin >> option;
+        switch(option){
+            case 0:
+                //hashTable.display_indexes();
+                //hashTable.display_buckets();
+                hashTable.print_all_buckets();
+            break;
+            case 1:
+
+                for(int year = 1900; year < 2000; year++) {
+                    for(int month = 1; month <= 12; month++) {
+                        for(int day = 1; day <= 31; day++) {
+                            // create a date string in the format "YYYY-MM-DD"
+                            std::string date = std::to_string(year) + "-" + std::to_string(month) + "-" + std::to_string(day);
+                            std::string state = chooseRandString(il);
+                            long mag = rand()%8 + 1;
+                            // assign the date string to the date member of the RegistroTornados object
+                            strncpy(reg.date, date.c_str(), sizeof(reg.date));
+                            strncpy(reg.state, state.c_str(), sizeof(reg.state));
+                            memcpy(&reg.magnitude, &mag, sizeof(reg.magnitude));
+                            // insert the RegistroTornados object into the hash table
+                            hashTable.insert(reg);
+                            cout << reg << endl;
+                        }
+                    }
+                }
+            break;
+            case 2:
+                cout << "\nEnter home_team: ";
+                cin >> reg.date;
+                cout << "Found: " << hashTable.search(reg.getKey()) << endl;
+            break;
+            case 3:
+                cout << "\nEnter name: ";
+                cin >> reg.date;
+                cout << "Remove: " << hashTable.remove(reg.getKey()) << endl;
+            break;
+            case 4:
+                return 0;
+            break;
+        }
+    }
+    return 0;
+};
+*/
