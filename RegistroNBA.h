@@ -70,8 +70,16 @@ RegistroNBA RegNBAfromCSVline(std::string tuple)
 
     reg.away_points = stol(attrs[4]);
 
-
     return reg;
+}
+
+std::string to_string(RegistroNBA a)
+{
+    return std::to_string(a.matchup_id) + "\t" +
+    std::string(a.home_team) + "\t" +
+    std::string(a.away_team) + "\t" +
+    std::to_string(a.home_points) + "\t" +
+    std::to_string(a.away_points);
 }
 
 void NBAFromCsvToVec(std::string filename,std::vector<RegistroNBA>& vecfinal) {
@@ -91,11 +99,3 @@ void NBAFromCsvToVec(std::string filename,std::vector<RegistroNBA>& vecfinal) {
     }
 }
 
-std::string to_string(RegistroNBA a)
-{
-    return std::to_string(a.matchup_id) + "\t" +
-    std::string(a.home_team) + "\t" +
-    std::string(a.away_team) + "\t" +
-    std::to_string(a.home_points) + "\t" +
-    std::to_string(a.away_points);
-}

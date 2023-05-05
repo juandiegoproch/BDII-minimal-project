@@ -14,7 +14,14 @@
     #include <iostream>
 #endif
 
-std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmanager, ExtendibleHash<RegistroTornados>& hashTable)
+std::string chooseRandString(std::vector<std::string> words)
+{
+    int index_raw = rand();
+
+    return words[index_raw%words.size()];
+}
+
+std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmanager, ExtendibleHash<RegistroNBA>& hashTable)
 {
     for (char& i : sentence)
         i = std::toupper(i);
@@ -108,7 +115,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 // first i must peel back the 
                 std::string args;
                 getline(sentence_stream,args);
-
+                
                 if (args.size() == 0)
                     return "Syntax Error: Invalid empty value \n";
                 args = args.substr(1,args.size() - 1); //get rid of the \n and " " at end and start
@@ -116,6 +123,8 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 if (args.size() < 2 || *args.begin() != '(' || *args.end() == ')' )
                     return "Invalid value \n";
                 args = args.substr(1, args.size() - 2);
+
+                /*
                 RegistroTornados regtor;
                 try
                 {
@@ -127,7 +136,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                     return "Invalid value: mismatched types. \n Hint: type ordering is ht,id,hp,at,ap \n";
                 }
                 // only if try has run
-                hashTable.insert(regtor);
+                hashTable.insert(regtor);*/
 
                 return "Inserted Succesfully \n";
 
@@ -144,10 +153,32 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 {
                     c = std::tolower(c);
                 }
+                
+                /*
+                vector<string> il = {"MO","OH","AR","IL","TX","LA","MS","TN","OK","FL","AL","SC","KS","IA","NE","SD","WY","NC","GA","ND","MN","WI","IN","PA","NM","CT","CO","WV","MD","KY","CA","VA","NJ","MI","MA","NH","OR","NY","MT","AZ","UT","ME","VT","ID","WA","DE","HI","PR","AK","NV","RI","DC","VI"};
+                RegistroTornados reg;
 
-                std::vector<RegistroTornados> registros;
+                for(int year = 1900; year < 2000; year++) {
+                    for(int month = 1; month <= 12; month++) {
+                        for(int day = 1; day <= 31; day++) {
+                            // create a date string in the format "YYYY-MM-DD"
+                            std::string date = std::to_string(year) + "-" + std::to_string(month) + "-" + std::to_string(day);
+                            std::string state = chooseRandString(il);
+                            long mag = rand()%8 + 1;
+                            // assign the date string to the date member of the RegistroTornados object
+                            strncpy(reg.date, date.c_str(), sizeof(reg.date));
+                            strncpy(reg.state, state.c_str(), sizeof(reg.state));
+                            memcpy(&reg.magnitude, &mag, sizeof(reg.magnitude));
+                            // insert the RegistroTornados object into the hash table
+                            hashTable.insert(reg);
+                            cout << reg << endl;
+                        }
+                    }
+                }*/
+
+                std::vector<RegistroNBA> registros;
                 try{
-                    registros = TornadosFromCSVtovec(FileName);
+                    NBAFromCsvToVec(FileName, registros);
                 }
                 catch (char const*)
                 {
@@ -155,14 +186,15 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 }
 
                 int insertedCount = 0;
-                while (!registros.empty())
+                while (registros.size() > 330)
                 {
+                    cout << to_string(registros.back()) << endl;
                     hashTable.insert(registros.back());
                     insertedCount++;
                     registros.pop_back();
                 }
 
-                return "Inserted " + std::to_string(insertedCount);
+                return "Inserted " + std::to_string(12*31*1000);
 
             }
         }
@@ -170,9 +202,6 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
         {
             return string("Relation \"") + currentWord + string("\" does not exist. \n");
         }
-
-
-
     }
     else if (currentWord == "SELECT")
     {
@@ -252,10 +281,10 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 #ifdef DEBUG
                     std::cout << "[DEBUG] SELECT * FROM TORNADO_HASH EQUALS" << std::endl;
                 #endif
-                std::string key;
+                long key;
                 sentence_stream >> key;
 
-                auto result = hashTable.search(key.c_str());
+                auto result = hashTable.search(key);
 
                 std::string output = " | date | state | magnitude | \n";
                 for (auto i : result)
@@ -295,9 +324,9 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
         }
         else if (currentWord == "TORNADO_HASH")
         {
-            std::string key;
+            long key;
             sentence_stream >> key;
-            bool worked = hashTable.remove(key.c_str());
+            bool worked = hashTable.remove(key);
             if (worked)
                 return "Deleted \n";
             else

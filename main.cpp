@@ -15,7 +15,7 @@ int main(void)
 {
 
     avlFileManager<RegistroNBA> fmanager("db_files/avlfile.avl");
-    ExtendibleHash<RegistroTornados> hashtable("db_files/hash_index.dat","db_files/hash_data.dat",32);
+    ExtendibleHash<RegistroNBA> hashtable("db_files/hash_index.dat","db_files/hash_data.dat",8);
     
     std::cout << "Welcome to OURSQL, our best effort at providing the simplest thing that could pass as a DBMS! \n";
     std::cout << R"(

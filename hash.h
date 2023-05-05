@@ -76,14 +76,19 @@ public:
         return false;
     }
 
-    RegisterType search(typename RegisterType::KeyType key){    // Search
+    vector<RegisterType> search(typename RegisterType::KeyType key){    // Search
+        vector<RegisterType> result;
         char* i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
         while(true){
             for(int j = 0; j < bucket.count; j++){
-                if(bucket.keys[j].getKey() == key) return bucket.keys[j];
+                if(bucket.keys[j].getKey() == key)
+                {
+                    result.push_back(bucket.keys[j]);
+                    return result;
+                }
             }
             if(bucket.next != -1){
                 bucket = read_bucket((bucket.next*sizeof(Bucket<RegisterType>))+sizeof(int));
@@ -91,10 +96,11 @@ public:
                 break;
             }
         }
-        throw exception();
+        return result;
     }
 
     void insert(RegisterType reg){                      // Insert
+        cout << get_num_buckets() << endl;
         if(find(reg.getKey())){
             //cout << "Register already exist." << endl;
             return;
@@ -192,6 +198,18 @@ public:
             }
             cout << endl;
         }
+    }
+
+    vector<RegisterType> range_search(typename RegisterType::KeyType start, typename RegisterType::KeyType end){
+        vector<RegisterType> res;
+        for(int i = 0; i < get_num_buckets(); i++){
+            Bucket<RegisterType> bucket = read_bucket((i*sizeof(Bucket<RegisterType>))+sizeof(int));
+            for(int j = 0; j < bucket.count; j++){
+                if(bucket.keys[j].getKey() > start && bucket.keys[j].getKey() < end)
+                    res.push_back(bucket.keys[j]);
+            }
+        }
+        return res;
     }
 
 
