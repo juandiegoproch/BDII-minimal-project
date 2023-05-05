@@ -119,3 +119,7 @@ Ejemplo: ```g++ -std=c++20 main.cpp```
 
 ## Resultados Obtenidos
 
+
+## Video funcionamiento Extendible Hashing
+https://drive.google.com/drive/folders/1s8VDEkBeCJ9y53u2AWoeb6a0ySF9ZWo4?usp=share_link
+
