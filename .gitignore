@@ -1,1 +1,3 @@
 db_files/*
+*.exe
+*.out

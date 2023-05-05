@@ -4,8 +4,8 @@
 #include "avlfile.h"
 #include "hash.h"
 #include "pseudosqlparser.h"
-#include "RegistroNBA.h"
-#include "RegistroTornados.h"
+#include "registros/RegistroNBA.h"
+#include "registros/RegistroTornados.h"
 #include <iostream>
 
 using namespace std;
