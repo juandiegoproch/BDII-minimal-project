@@ -5,8 +5,8 @@
 #include <locale>
 #include <vector>
 #include <stdexcept>
-#include "RegistroNBA.h"
-#include "RegistroTornados.h"
+#include "registros/RegistroNBA.h"
+#include "registros/RegistroTornados.h"
 #include "avlfile.h"
 #include "hash.h"
 
