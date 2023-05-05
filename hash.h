@@ -1,8 +1,5 @@
 #pragma once
 
-#include "RegistroNBA.h"
-#include "RegistroTornados.h"
-
 #include <vector>
 #include <fstream>
 #include <bitset>

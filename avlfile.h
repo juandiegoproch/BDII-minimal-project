@@ -8,7 +8,6 @@
 #include <queue>
 #include <functional>
 #include <cstring>
-#include "RegistroNBA.h"
 #include <algorithm>
 
 using namespace std;
@@ -449,7 +448,7 @@ private:
         return file.peek() == fstream::traits_type::eof();
     }
 
-    void recursiveRangeSearch(fstream& file, vector<RegistroNBA> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend, bool pass) {
+    void recursiveRangeSearch(fstream& file, vector<RegisterType> &vec, AVLFileNode<RegisterType>& node, typename RegisterType::KeyType idstart, typename RegisterType::KeyType idend, bool pass) {
         int node_ptr = 0; //El node_ptr comienza en 0
         if (node.data.getKey() < idstart) {
             if(pass == false) {
