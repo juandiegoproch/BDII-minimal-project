@@ -118,8 +118,12 @@ Y se ejecutara el archivo, despues unicamente queda realizar los queries, para c
 Ejemplo: ```g++ -std=c++20 main.cpp```
 
 ## Resultados Obtenidos
+<p align="center"><img src="https://imgur.com/TXwXGPF.png" width=400></p>
+<p align="center"><img src="https://imgur.com/Kdd2A9g.png" width=400></p>
+<p align="center"><img src="https://imgur.com/Kdd2A9g.png" width=400></p>
 
 
 ## Video funcionamiento Extendible Hashing
+Tras finalizar la clase, nos dimos cuenta que el error era que pusimos como max_index del extendible hashing 32 y al parecer eso genera problema no se por que, despues con un numero como 16 si funcionaba todo correctamente.
 https://drive.google.com/drive/folders/1s8VDEkBeCJ9y53u2AWoeb6a0ySF9ZWo4?usp=share_link
 
