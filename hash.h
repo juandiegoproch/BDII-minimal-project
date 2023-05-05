@@ -13,7 +13,7 @@ using namespace std;
 const int fillfactor = 5;   // const int because its used to initialize in the bucket struct, the array size.
 
 struct Directory{
-    char key[10]{0};
+    char* key;
     long pos_fisica;
 };
 
@@ -76,19 +76,14 @@ public:
         return false;
     }
 
-    vector<RegisterType> search(typename RegisterType::KeyType key){    // Search
-        vector<RegisterType> result;
+    RegisterType search(typename RegisterType::KeyType key){    // Search
         char* i = hashFunc(key, global_depth);
         int index = get_bucket_pos_from_index(i);
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
         while(true){
             for(int j = 0; j < bucket.count; j++){
-                if(bucket.keys[j].getKey() == key)
-                {
-                    result.push_back(bucket.keys[j]);
-                    return result;
-                }
+                if(bucket.keys[j].getKey() == key) return bucket.keys[j];
             }
             if(bucket.next != -1){
                 bucket = read_bucket((bucket.next*sizeof(Bucket<RegisterType>))+sizeof(int));
@@ -96,12 +91,12 @@ public:
                 break;
             }
         }
-        return result;
+        throw exception();
     }
 
     void insert(RegisterType reg){                      // Insert
         if(find(reg.getKey())){
-            cout << "Register already exist." << endl;
+            //cout << "Register already exist." << endl;
             return;
         }
 
@@ -109,16 +104,16 @@ public:
         int index = get_bucket_pos_from_index(i);    // 
         Bucket<RegisterType> bucket = bucket_from_bin(i);
 
-        cout << "trying to insert " << reg.getKey() << " in bucket " << index << endl;
-        display_bucket(bucket);
-        cout << "----\n";
+        //cout << "trying to insert " << reg.getKey() << " in bucket " << index << endl;
+        //display_bucket(bucket);
+        //cout << "----\n";
 
         if(!bucket.isfull())
         {                            // Insert the key into the bucket
-                                    cout << "normal insert" << endl;
+                                    //cout << "normal insert" << endl;
             bucket.insert(reg);
             write_bucket(index, bucket);  
-            read_dir();  
+            //read_dir();  
             return;    
         } 
         else 
@@ -225,9 +220,7 @@ private:
             ofstream dir_file(hash_file_name, ios::out | ios::binary);
             for(int i = 0; i < num_buckets; i++){
                 Directory dir;
-                char* temp = to_binary(i, global_depth);
-                strcpy(dir.key,temp);
-                delete temp;
+                dir.key = to_binary(i, global_depth);
                 dir.pos_fisica = sizeof(int) + (sizeof(Bucket<RegisterType>)*i);
                 dir_file.write((char*)&dir, sizeof(Directory));
             }
@@ -246,17 +239,17 @@ private:
         for(int i = 0; i < bucket.count; i++){
             char* ind = hashFunc(bucket.keys[i].getKey(), global_depth);
 
-            cout << "index: " << index << endl;
-            cout << "rehashing " << bucket.keys[i].getKey() << " with index: " << ind << endl;
+            //cout << "index: " << index << endl;
+            //cout << "rehashing " << bucket.keys[i].getKey() << " with index: " << ind << endl;
 
             if(ind[0] == '0') old_b.insert(bucket.keys[i]);
             else new_b.insert(bucket.keys[i]);
         }
 
         write_bucket(index, old_b);
-        cout << "wrote old bucket with now " << old_b.count << " elements\n";
+        //cout << "wrote old bucket with now " << old_b.count << " elements\n";
         write_bucket(get_num_buckets(), new_b);
-        cout << "wrote new bucket with " << new_b.count << " elements\n";
+        //cout << "wrote new bucket with " << new_b.count << " elements\n";
     }
    
     void duplicate_dir(int index){                      // Duplicate every directory (for the rehash).
@@ -275,19 +268,17 @@ private:
         for(int j = 0; j < 2; j++){
             for(auto &x: dirs){
                 if(i == index){
-                    cout << "found!" << endl;
+                    //cout << "found!" << endl;
                     x.pos_fisica = ((get_num_buckets()-1)*sizeof(Bucket<RegisterType>))+sizeof(int);
                 }
-                char* temp = to_binary(i, global_depth);
-                strcpy(x.key,temp);
-                delete temp;
+                x.key = to_binary(i, global_depth);
                 write_file.write((char*)&x, sizeof(Directory));
                 i++;
             }
         }
         write_file.close();
-        print_all_buckets();
-        read_dir();
+        //print_all_buckets();
+        //read_dir();
     }
 
     void reindex(int index){                            // after duplicating the buckets, this indexates them
@@ -374,8 +365,7 @@ private:
     int get_bucket_pos_from_index(char* index) {
         // Given an index, it returns the bucket with that position.
         int index_new = std::stoi(index, nullptr, 2);
-        ifstream file;
-        file.open(hash_file_name, ios::in | ios::binary);
+        ifstream file(hash_file_name, ios::in | ios::binary);
         Directory direc;
         file.seekg(index_new * sizeof(Directory), ios::beg);
         file.read((char*)&direc, sizeof(Directory));
@@ -455,7 +445,7 @@ private:
         return binary;
     }
 
-    char* hashFunc(std::string key, int digits){            // Hash function for strings
+    char* hashFunc(std::string key, int digits){
         int sum = 0;
         for(int i = 0; i < key.length(); i++){
             sum += int(key[i]);
