@@ -14,13 +14,13 @@ using namespace std;
 int main(void)
 {
 
-    avlFileManager<RegistroNBA> fmanager("db_files/avlfile.avl");
-    ExtendibleHash<RegistroTornados> hashtable("db_files/hash_index.dat","db_files/hash_data.dat",32);
+    avlFileManager<RegistroTornados> fmanager("db_files/avlfile.avl");
+    ExtendibleHash<RegistroTornados> hashtable("db_files/hash_index.dat","db_files/hash_data.dat",8);
     
     std::cout << "Welcome to OURSQL, our best effort at providing the simplest thing that could pass as a DBMS! \n";
     std::cout << R"(
         Some comments on syntax:
-            Although our query language is similar to SQL, it is certainly not SQL. Many of the usual features are missing
+            Although our query language is similar to SQL, it is certainly not. Many of the usual features are missing
             due to limitations of our system. Others have been restructured in a way that better fits
             the constraints of our design.
 
