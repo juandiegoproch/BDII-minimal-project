@@ -20,7 +20,7 @@ int main(void)
     std::cout << "Welcome to OURSQL, our best effort at providing the simplest thing that could pass as a DBMS! \n";
     std::cout << R"(
         Some comments on syntax:
-            Although our query language is similar to SQL, it is certainly not. Many of the usual features are missing
+            Although our query language is similar to SQL, it is certainly not SQL. Many of the usual features are missing
             due to limitations of our system. Others have been restructured in a way that better fits
             the constraints of our design.
 
