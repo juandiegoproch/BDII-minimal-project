@@ -30,9 +30,8 @@ Una vez concluido el proyecto, los resultados obtenidos nos permitirán comprend
 
 ## Técnicas de indexación
 ### AVL Tree
-A diferencia del Sequential File y el ISAM, el AVL ofrece una mayor eficiencia en la búsqueda y manipulación de registros individuales, lo que lo hace más adecuado para aplicaciones en las que se necesitan búsquedas frecuentes y eficientes de registros. Para aplicaciones que requieren busquedas por rango de valores en la clave de indexacion tambien es bueno.
-
-Sin embargo, el ISAM puede ser más adecuado para aplicaciones con conjuntos de datos muy grandes debido a su capacidad para dividir los datos en múltiples bloques y distribuirlos en diferentes archivos. Además, el ISAM puede ser más eficiente en términos de uso de memoria ya que no necesita almacenar la estructura completa del árbol como lo hace el AVL File.
+A diferencia del Sequential File y el ISAM, el AVL ofrece una mayor eficiencia en la búsqueda y manipulación de registros individuales, pues es enteramente dinámico. Esto lo hace más adecuado para aplicaciones en las que se necesitan búsquedas frecuentes y eficientes de registros. Para aplicaciones que requieren busquedas por rango de valores en la clave de indexacion resulta particularmente útil.
+Aún así, reconocemos que el ISAM puede ser más eficiente en términos de uso de memoria ya que no necesita almacenar la estructura completa del árbol como lo hace el AVL File.
 
 ### Extensible Hashing
 Tanto el Extensible Hashing como el B+ Tree son estructuras de organización de archivos eficientes y muy utilizadas en la actualidad. 
@@ -41,7 +40,7 @@ En cuanto a la inserción de nuevos registros, ambas estructuras son muy eficien
 
 El B+ Tree es más adecuado para trabajar con conjuntos de datos grandes y dispersos, mientras que el Extensible Hashing es más adecuado para conjuntos de datos pequeños y densos. Además, el B+ Tree es más flexible y puede manejar una amplia gama de operaciones de búsqueda, como búsqueda por rango y búsqueda con múltiples claves, mientras que el Extensible Hashing solo puede manejar búsquedas por clave exacta.
 
-En cuanto al uso de memoria, el Extensible Hashing es más eficiente, ya que solo requiere espacio adicional para el directorio hash, mientras que el B+ Tree requiere espacio adicional para todos los nodos del árbol. Por lo tanto, el Extensible Hashing es una buena opción para conjuntos de datos que pueden crecer rápidamente, ya que puede expandirse dinámicamente sin requerir grandes cantidades de memoria adicional.
+Sobre todo, el extendible hashing nos permite indexar por igualdad, a diferencia del AVL que ya estamos haciendo.
 
 Para ser sinceros, a final de cuentas elegimos el hash para no codear el B+ 😌👍 honestidad ante todo.
 
