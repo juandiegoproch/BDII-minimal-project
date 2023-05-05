@@ -74,7 +74,7 @@ Ejemplo: ```g++ -std=c++20 main.cpp```
 ## Resultados Obtenidos
 <p align="center"><img src="https://imgur.com/TXwXGPF.png" width=400></p>
 <p align="center"><img src="https://imgur.com/Kdd2A9g.png" width=400></p>
-<p align="center"><img src="https://imgur.com/Kdd2A9g.png" width=400></p>
+<p align="center"><img src="https://imgur.com/A8fAH1H.png" width=400></p>
 
 
 ## Video funcionamiento Extendible Hashing
