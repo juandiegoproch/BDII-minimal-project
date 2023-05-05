@@ -1,17 +1,20 @@
 #pragma once
-#include<string>
-#include<vector>
-#include<fstream>
+#include <string>
+#include <vector>
+#include <fstream>
+#include <chrono>
 
 struct RegistroTornados{
     typedef std::string KeyType;
 
     KeyType getKey(){
-        return date;
+        std::string a = "";
+        a = a + std::string((const char* const)date);
+        return a;
     }
 
-    char date[11];
-    char state[2];
+    char date[12]{0};
+    char state[4]{0};
     long magnitude = 8;
 
     friend std::ostream& operator<<(std::ostream& os, RegistroTornados reg){

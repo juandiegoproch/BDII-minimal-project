@@ -44,6 +44,12 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
             {
                 std::string FileName;
                 sentence_stream >> FileName;
+
+                for (auto& c :FileName)
+                {
+                    c = std::tolower(c);
+                }
+
                 #ifdef DEBUG
                     std::cout << "[DEBUG] INSERT INTO NBA_AVL FROM" << FileName << std::endl;
                 #endif
@@ -51,14 +57,17 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 std::vector<RegistroNBA> registros;
                 NBAFromCsvToVec(FileName,registros);
                 int insertedCount = 0;
+
+                auto start = std::chrono::high_resolution_clock::now();
+
                 while (!registros.empty())
                 {
                     avlfmanager.insert(registros.back());
                     insertedCount++;
                     registros.pop_back();
                 }
-
-                return "Inserted " + std::to_string(insertedCount);
+                auto end = std::chrono::high_resolution_clock::now();
+                return "Inserted " + std::to_string(insertedCount) + " in " + std::to_string((std::chrono::duration_cast<std::chrono::milliseconds>(end-start)).count()) + "ms \n";
             }
             else if (currentWord == "VALUE")
             {
@@ -71,6 +80,7 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 std::string args;
                 getline(sentence_stream,args);
 
+                auto start = std::chrono::high_resolution_clock::now();
                 if (args.size() < 1)
                     return "Syntax error: Invalid empty value \n";
                 args = args.substr(1,args.size() - 1); //get rid of the \n and " " at end and start
@@ -90,8 +100,9 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 }
                 // only if try has run
                 avlfmanager.insert(regnba);
+                auto end = std::chrono::high_resolution_clock::now();
+                return "Inserted Succesfully in " + std::to_string((std::chrono::duration_cast<std::chrono::milliseconds>(end-start)).count()) + "ms \n";
 
-                return "Inserted Succesfully \n";
             }
             
         }
@@ -204,15 +215,17 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
 
                 sentence_stream >> start_s;
                 sentence_stream >> end_s;
+                auto start = std::chrono::high_resolution_clock::now();
 
                 auto result = avlfmanager.rangeSearch(atol(start_s.c_str()),atol(end_s.c_str()));
                 
+                auto end = std::chrono::high_resolution_clock::now();
                 // generate the output string
 
                 std::string output = " | matchup_id | home_team | away_team | home_points | away_points | \n";
                 for (const auto& i:result)
                     output += to_string(i) + "\n";
-                return output;
+                return output + " Inserted " + std::to_string(output.size()) + " in " + std::to_string((std::chrono::duration_cast<std::chrono::milliseconds>(end-start)).count()) + "ms \n";
             }
             else if (currentWord == "EQUALS")
             {
@@ -223,11 +236,12 @@ std::string parseSql(std::string sentence, avlFileManager<RegistroNBA>& avlfmana
                 sentence_stream >> key;
 
                 long keyl = atol(key.c_str());
+                auto start = std::chrono::high_resolution_clock::now();
                 auto result = avlfmanager.search(keyl);
-
+                auto end = std::chrono::high_resolution_clock::now();
                 std::string output = " | matchup_id | home_team | away_team | home_points | away_points | \n";
                 for (const auto& i:result)
-                    output += to_string(i) + "\n";
+                    output += to_string(i) + " in " + std::to_string((std::chrono::duration_cast<std::chrono::milliseconds>(end-start)).count()) +"ms\n";
                 return output;
             }
             else 
