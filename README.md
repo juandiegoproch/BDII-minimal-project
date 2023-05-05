@@ -83,6 +83,8 @@ El AVL como era esperado es muchisimo mas rapido en todas las busquedas por rang
 
 De los tiempos de busqueda no podemos concluir mucho, pues ambos son relativamente bajos y estan sujetos a varianza de muestra a muestra. Sin embargo podemos ver una tendencia del AVL a desempeñarse peor cuando hay menos datos en comparacion al hash. Nuevamente, esto debe ser por culpa de los encadenamientos si es que no se trata de la mencionada varianza de muestra a muestra.
 
+Es evidente sin embargo que para conseguir todos los beneficios del AVL se paga el precio en memoria: el grafico indica que si bien ambos crecen en tamaño de forma lineal, el tamaño extra de cada nodo del AVL se acumula rápidamente.
+
 ## Video funcionamiento Extendible Hashing
 Tras finalizar la clase, nos dimos cuenta que el error era que pusimos como max_index del extendible hashing 32 y al parecer eso genera problema no se por que, despues con un numero como 16 si funcionaba todo correctamente.
 https://drive.google.com/drive/folders/1s8VDEkBeCJ9y53u2AWoeb6a0ySF9ZWo4?usp=share_link
