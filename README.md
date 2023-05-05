@@ -76,6 +76,11 @@ Ejemplo: ```g++ -std=c++20 main.cpp```
 <p align="center"><img src="https://imgur.com/Kdd2A9g.png" width=400></p>
 <p align="center"><img src="https://imgur.com/A8fAH1H.png" width=400></p>
 
+Vemos que para las inserciones tanto el AVL como el Hash demoran mas tiempo. Sin embargo, el Hash demora mas. Nos preguntamos por que seria eso, dado que las complejidades teoricas decian que la insercion del hash es de O(1), y luego determinamos que el numero de buckets en linea seria de aproximadamente 50 con el numero de datos mas grande. Ademas la implementacion del hash realiza una busqueda (es decir realiza dos "pasadas" sobre el archivo: la busqueda y la insercion propiamente dicha) para determinar unicidad a difierencia del AVL, que simplemente inserta el valor dado que es un multimap. Podemos ver sin embargo que el hash es mas eficiente con menos datos, cuando sus buckets aun no estan llenos. Sobre el AVl vemos que su tiempo crece considerablemente mas lento, pero aun mustra una forma curva sugiriendo que su comportamiento por algun motivo no es del todo logarimico como se sabe de la teoria (es probable que se deba a las inserciones en las linked lists que conforman sus nodos).
+
+El AVL como era esperado es muchisimo mas rapido en todas las busquedas por rango, y a pesar de los pocos puntos de datos pareciera asomar una complejidad logaritmica, aunque con lo rapido que es tambien podria ser la variacion de corrida a corrida.
+
+De los tiempos de busqueda no podemos concluir mucho, pues ambos son relativamente bajos y estan sujetos a varianza de muestra a muestra. Sin embargo podemos ver una tendencia del AVL a desempeñarse peor cuando hay menos datos en comparacion al hash. Nuevamente, esto debe ser por culpa de los encadenamientos si es que no se trata de la mencionada varianza de muestra a muestra.
 
 ## Video funcionamiento Extendible Hashing
 Tras finalizar la clase, nos dimos cuenta que el error era que pusimos como max_index del extendible hashing 32 y al parecer eso genera problema no se por que, despues con un numero como 16 si funcionaba todo correctamente.
