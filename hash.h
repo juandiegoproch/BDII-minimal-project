@@ -100,7 +100,7 @@ public:
     }
 
     void insert(RegisterType reg){                      // Insert
-        cout << get_num_buckets() << endl;
+        //cout << get_num_buckets() << endl;
         if(find(reg.getKey())){
             //cout << "Register already exist." << endl;
             return;
